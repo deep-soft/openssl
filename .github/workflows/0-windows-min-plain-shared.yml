@@ -76,7 +76,7 @@ jobs:
         job_type:
           - type: shared
     runs-on: ${{ matrix.os }}
-    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}
     steps:
     - name: Checkout
       uses: deep-soft/checkout@v4

@@ -6,7 +6,7 @@
 # https://www.openssl.org/source/license.html
 
 name: act-Windows
-# 2023-12-21 13:30
+# 2023-12-21 18:30
 #
 #
 
@@ -153,7 +153,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
         directory: '${{ env.RELEASE_DIR }}'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -177,7 +177,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}-ALL.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -261,7 +261,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
         directory: '${{ env.RELEASE_DIR }}'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -285,7 +285,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}-ALL.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -369,7 +369,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
         directory: '${{ env.RELEASE_DIR }}'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -393,7 +393,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}-ALL.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'

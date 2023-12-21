@@ -82,55 +82,54 @@ jobs:
       uses: deep-soft/checkout@v4
 
 ## -- read from VERSION.dat - begin
-      - name: Read version from VERSION.dat
-        continue-on-error: true
-        shell: bash
-        run: |
-          _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
-          _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
-          _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
-          _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
-          _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
-          echo "PROG_VERSION=[$_prog_version_]"
-          echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
+    - name: Read version from VERSION.dat
+      continue-on-error: true
+      shell: bash
+      run: |
+        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
+        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
+        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
+        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
+        _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
+        echo "PROG_VERSION=[$_prog_version_]"
+        echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
 
-      - name: Set TAG_VERSION
-        shell: bash
-        run: |
-          echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
-          echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
+    - name: Set TAG_VERSION
+      shell: bash
+      run: |
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
 
-      - name: Print env.PROG_VERSION
-        shell: bash
-        run: |
-          echo "show new value for env.PROG_VERSION"
-          echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
-          echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
-
+    - name: Print env.PROG_VERSION
+      shell: bash
+      run: |
+        echo "show new value for env.PROG_VERSION"
+        echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
 ## -- read from VERSION.dat - end
 
 ## - get ref set build - begin
-      - name: Get ref, set build version
-        shell: bash
-        run: |
-          _ref_all_=$(git log -1 --format='%H')
-          # _ref_=$(echo ${_ref_all_::7})
-          _date_=$(date +%Y%m%d)
-          _ref_org_=${{ env.TAG_REF }}
-          _ref_len_="${#_ref_org_}"
-          _ref_=$(echo ${_ref_all_::$_ref_len_})
-          echo "TAG_REF=$_ref_" >> $GITHUB_ENV
-          _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
-          echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
-          echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
-          echo "TAG_DATE=$_date_" >> $GITHUB_ENV
+    - name: Get ref, set build version
+      shell: bash
+      run: |
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        echo "TAG_REF=$_ref_" >> $GITHUB_ENV
+        _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
+        echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
+        echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+        echo "TAG_DATE=$_date_" >> $GITHUB_ENV
 
-      - name: Print ref, build version
-        shell: bash
-        run: |
-          echo "REF: ${{ env.TAG_REF }}
-          echo "BLD: ${{ env.TAG_BUILD }}
-          echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+    - name: Print ref, build version
+      shell: bash
+      run: |
+        echo "REF: ${{ env.TAG_REF }}
+        echo "BLD: ${{ env.TAG_BUILD }}
+        echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
 ## - get ref set build - end
 
     - name: Checkout fuzz/corpora submodule
@@ -265,55 +264,54 @@ jobs:
       uses: deep-soft/checkout@v4
 
 ## -- read from VERSION.dat - begin
-      - name: Read version from VERSION.dat
-        continue-on-error: true
-        shell: bash
-        run: |
-          _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
-          _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
-          _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
-          _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
-          _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
-          echo "PROG_VERSION=[$_prog_version_]"
-          echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
+    - name: Read version from VERSION.dat
+      continue-on-error: true
+      shell: bash
+      run: |
+        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
+        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
+        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
+        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
+        _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
+        echo "PROG_VERSION=[$_prog_version_]"
+        echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
 
-      - name: Set TAG_VERSION
-        shell: bash
-        run: |
-          echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
-          echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
+    - name: Set TAG_VERSION
+      shell: bash
+      run: |
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
 
-      - name: Print env.PROG_VERSION
-        shell: bash
-        run: |
-          echo "show new value for env.PROG_VERSION"
-          echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
-          echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
-
+    - name: Print env.PROG_VERSION
+      shell: bash
+      run: |
+        echo "show new value for env.PROG_VERSION"
+        echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
 ## -- read from VERSION.dat - end
 
 ## - get ref set build - begin
-      - name: Get ref, set build version
-        shell: bash
-        run: |
-          _ref_all_=$(git log -1 --format='%H')
-          # _ref_=$(echo ${_ref_all_::7})
-          _date_=$(date +%Y%m%d)
-          _ref_org_=${{ env.TAG_REF }}
-          _ref_len_="${#_ref_org_}"
-          _ref_=$(echo ${_ref_all_::$_ref_len_})
-          echo "TAG_REF=$_ref_" >> $GITHUB_ENV
-          _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
-          echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
-          echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
-          echo "TAG_DATE=$_date_" >> $GITHUB_ENV
+    - name: Get ref, set build version
+      shell: bash
+      run: |
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        echo "TAG_REF=$_ref_" >> $GITHUB_ENV
+        _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
+        echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
+        echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+        echo "TAG_DATE=$_date_" >> $GITHUB_ENV
 
-      - name: Print ref, build version
-        shell: bash
-        run: |
-          echo "REF: ${{ env.TAG_REF }}
-          echo "BLD: ${{ env.TAG_BUILD }}
-          echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+    - name: Print ref, build version
+      shell: bash
+      run: |
+        echo "REF: ${{ env.TAG_REF }}
+        echo "BLD: ${{ env.TAG_BUILD }}
+        echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
 ## - get ref set build - end
 
     - name: Checkout fuzz/corpora submodule
@@ -437,57 +435,55 @@ jobs:
       uses: deep-soft/checkout@v4
 
 ## -- read from VERSION.dat - begin
-      - name: Read version from VERSION.dat
-        continue-on-error: true
-        shell: bash
-        run: |
-          _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
-          _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
-          _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
-          _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
-          _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
-          echo "PROG_VERSION=[$_prog_version_]"
-          echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
+    - name: Read version from VERSION.dat
+      continue-on-error: true
+      shell: bash
+      run: |
+        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
+        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
+        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
+        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
+        _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
+        echo "PROG_VERSION=[$_prog_version_]"
+        echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
 
-      - name: Set TAG_VERSION
-        shell: bash
-        run: |
-          echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
-          echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
+    - name: Set TAG_VERSION
+      shell: bash
+      run: |
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
 
-      - name: Print env.PROG_VERSION
-        shell: bash
-        run: |
-          echo "show new value for env.PROG_VERSION"
-          echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
-          echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
-
+    - name: Print env.PROG_VERSION
+      shell: bash
+      run: |
+        echo "show new value for env.PROG_VERSION"
+        echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
 ## -- read from VERSION.dat - end
 
 ## - get ref set build - begin
-      - name: Get ref, set build version
-        shell: bash
-        run: |
-          _ref_all_=$(git log -1 --format='%H')
-          # _ref_=$(echo ${_ref_all_::7})
-          _date_=$(date +%Y%m%d)
-          _ref_org_=${{ env.TAG_REF }}
-          _ref_len_="${#_ref_org_}"
-          _ref_=$(echo ${_ref_all_::$_ref_len_})
-          echo "TAG_REF=$_ref_" >> $GITHUB_ENV
-          _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
-          echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
-          echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
-          echo "TAG_DATE=$_date_" >> $GITHUB_ENV
+    - name: Get ref, set build version
+      shell: bash
+      run: |
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        echo "TAG_REF=$_ref_" >> $GITHUB_ENV
+        _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
+        echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
+        echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+        echo "TAG_DATE=$_date_" >> $GITHUB_ENV
 
-      - name: Print ref, build version
-        shell: bash
-        run: |
-          echo "REF: ${{ env.TAG_REF }}
-          echo "BLD: ${{ env.TAG_BUILD }}
-          echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+    - name: Print ref, build version
+      shell: bash
+      run: |
+        echo "REF: ${{ env.TAG_REF }}
+        echo "BLD: ${{ env.TAG_BUILD }}
+        echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
 ## - get ref set build - end
-
 
     - name: Checkout fuzz/corpora submodule
       run: |

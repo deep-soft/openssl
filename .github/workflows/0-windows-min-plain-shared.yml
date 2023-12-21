@@ -53,7 +53,7 @@ env:
   TAG_NAME: "openssl"
   RELEASE_NAME: openssl
   RELEASE_DIR: "_build/_dest"
-  INSTALL_DIR: "_build/_dest/Program\ Files/OpenSSL"
+  INSTALL_DIR: "_build/_dest/Program Files/OpenSSL"
   VERSION: 3.2.0-dev
   GUI: win64
   BUILD_NAME: BLD-openssl

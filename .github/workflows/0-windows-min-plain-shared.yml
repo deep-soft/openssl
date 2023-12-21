@@ -6,7 +6,7 @@
 # https://www.openssl.org/source/license.html
 
 name: act-Windows
-# 2023-12-21 21:00
+# 2023-12-21 21:20
 #
 #
 
@@ -86,10 +86,10 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
-        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
-        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
-        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
+        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat);
+        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat);
+        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat);
+        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat);
         _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
         echo "PROG_VERSION=[$_prog_version_]"
         echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
@@ -268,10 +268,10 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
-        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
-        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
-        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
+        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat);
+        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat);
+        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat);
+        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat);
         _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
         echo "PROG_VERSION=[$_prog_version_]"
         echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
@@ -439,10 +439,10 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat;
-        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat;
-        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat;
-        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat;
+        _major_=$(grep "MAJOR" | awk -F "=" '{print $2}' VERSION.dat);
+        _minor_=$(grep "MINOR" | awk -F "=" '{print $2}' VERSION.dat);
+        _patch_=$(grep "PATCH" | awk -F "=" '{print $2}' VERSION.dat);
+        _prert_=$(grep "PRE_RELEASE_TAG" | awk -F "=" '{print $2}' VERSION.dat);
         _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
         echo "PROG_VERSION=[$_prog_version_]"
         echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV

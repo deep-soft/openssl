@@ -6,7 +6,7 @@
 # https://www.openssl.org/source/license.html
 
 name: act-Windows
-# 2023-12-21 18:30
+# 2023-12-21 20:10
 #
 #
 
@@ -17,7 +17,7 @@ on:
         description: Run test after build
         type: boolean
         required: true
-        default: true
+        default: false
       minimal:
         description: Minimal version
         type: boolean
@@ -53,6 +53,7 @@ env:
   TAG_NAME: "openssl"
   RELEASE_NAME: openssl
   RELEASE_DIR: "_build/_dest"
+  INSTALL_DIR: "_build/_dest/Program Files/OpenSSL"
   VERSION: 3.2.0-dev
   GUI: win64
   BUILD_NAME: BLD-openssl
@@ -127,16 +128,16 @@ jobs:
       with:
         type: 'zip'
         filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
-        directory: '${{ env.RELEASE_DIR }}'
-        #exclusions: '*.map *.pdb'
-        #recursive_exclusions: '*.map *.pdb'
+        directory: '${{ env.INSTALL_DIR }}'
+        exclusions: '*.map *.pdb'
+        recursive_exclusions: '*.map *.pdb'
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Publish
       if: ${{ inputs.release_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}
         files: |
@@ -165,6 +166,7 @@ jobs:
        perl ../util/checkplatformsyms.pl ../util/platform_symbols/windows-symbols.txt libcrypto-3-x64.dll ./libssl-3-x64.dll
 
     - name: Test
+      if: ${{ inputs.test }}
       continue-on-error: true
       working-directory: _build
       run: |
@@ -187,7 +189,7 @@ jobs:
     - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}-ALL
         files: |
@@ -250,16 +252,16 @@ jobs:
       with:
         type: 'zip'
         filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
-        directory: '${{ env.RELEASE_DIR }}'
-        #exclusions: '*.map *.pdb'
-        #recursive_exclusions: '*.map *.pdb'
+        directory: '${{ env.INSTALL_DIR }}'
+        exclusions: '*.map *.pdb'
+        recursive_exclusions: '*.map *.pdb'
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Publish
       if: ${{ inputs.release_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}
         files: |
@@ -282,6 +284,7 @@ jobs:
         ./apps/openssl.exe version -c
 
     - name: Test
+      if: ${{ inputs.test }}
       continue-on-error: true
       working-directory: _build
       run: |
@@ -304,7 +307,7 @@ jobs:
     - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}-ALL
         files: |
@@ -367,16 +370,16 @@ jobs:
       with:
         type: 'zip'
         filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
-        directory: '${{ env.RELEASE_DIR }}'
-        #exclusions: '*.map *.pdb'
-        #recursive_exclusions: '*.map *.pdb'
+        directory: '${{ env.INSTALL_DIR }}'
+        exclusions: '*.map *.pdb'
+        recursive_exclusions: '*.map *.pdb'
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Publish
       if: ${{ inputs.release_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}
         files: |
@@ -399,6 +402,7 @@ jobs:
         ./apps/openssl.exe version -c
 
     - name: Test
+      if: ${{ inputs.test }}
       continue-on-error: true
       working-directory: _build
       run: |
@@ -421,7 +425,7 @@ jobs:
     - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}-ALL
         files: |

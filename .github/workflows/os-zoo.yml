@@ -7,9 +7,11 @@
 
 name: OS Zoo CI
 
+#on:
+#  schedule:
+#    - cron: '0 5 * * *'
 on:
-  schedule:
-    - cron: '0 5 * * *'
+  workflow_dispatch
 
 permissions:
   contents: read

@@ -192,7 +192,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
-         _tag_name_.txt
+          _tag_name_.txt
 # zip release end
 
     - name: Download coreinfo
@@ -245,7 +245,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
-         _tag_name_.txt
+          _tag_name_.txt
 # zip release end
 
   plain:
@@ -369,7 +369,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
-         _tag_name_.txt
+          _tag_name_.txt
 # zip release end
 
     - name: Download coreinfo
@@ -416,7 +416,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
-         _tag_name_.txt
+          _tag_name_.txt
 # zip release end
 
   minimal:
@@ -540,7 +540,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
-         _tag_name_.txt
+          _tag_name_.txt
 # zip release end
 
     - name: Download coreinfo
@@ -587,5 +587,5 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
-         _tag_name_.txt
+          _tag_name_.txt
 # zip release end

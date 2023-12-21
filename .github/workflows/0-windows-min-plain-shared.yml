@@ -110,37 +110,10 @@ jobs:
       run: |
         nmake /S
 
-    - name: Download coreinfo
-      continue-on-error: true
-      uses: deep-soft/actions-download-file@v1.4.0
-      with:
-        url: "https://download.sysinternals.com/files/Coreinfo.zip"
-        target: _build/coreinfo/
-
-    - name: Get cpu info
-      continue-on-error: true
-      working-directory: _build
-      run: |
-        7z.exe x coreinfo/Coreinfo.zip
-        ./Coreinfo64.exe -accepteula -f
-        ./apps/openssl.exe version -c
-
-    - name: Check platform symbol usage
-      continue-on-error: true
-      working-directory: _build
-      run: |
-       perl ../util/checkplatformsyms.pl ../util/platform_symbols/windows-symbols.txt libcrypto-3-x64.dll ./libssl-3-x64.dll
-
-    - name: Test
-      continue-on-error: true
-      working-directory: _build
-      run: |
-        nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
-
     - name: Install
       continue-on-error: true
       # Run on 64 bit only as 32 bit is slow enough already
-      if: $${{ matrix.platform.arch == 'win64' }}
+      #if: $${{ matrix.platform.arch == 'win64' }}
       run: |
         mkdir _dest
         nmake install DESTDIR=_dest
@@ -170,6 +143,33 @@ jobs:
           ${{ env.ZIP_RELEASE_ARCHIVE }}
 # zip release end
 
+    - name: Download coreinfo
+      continue-on-error: true
+      uses: deep-soft/actions-download-file@v1.4.0
+      with:
+        url: "https://download.sysinternals.com/files/Coreinfo.zip"
+        target: _build/coreinfo/
+
+    - name: Get cpu info
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        7z.exe x coreinfo/Coreinfo.zip
+        ./Coreinfo64.exe -accepteula -f
+        ./apps/openssl.exe version -c
+
+    - name: Check platform symbol usage
+      continue-on-error: true
+      working-directory: _build
+      run: |
+       perl ../util/checkplatformsyms.pl ../util/platform_symbols/windows-symbols.txt libcrypto-3-x64.dll ./libssl-3-x64.dll
+
+    - name: Test
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
+
 # zip All begin
     - name: Create Zip Archive All
       if: ${{ inputs.build_archive }}
@@ -184,7 +184,7 @@ jobs:
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Publish
+    - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
       uses: deep-soft/action-gh-release@v1
@@ -233,26 +233,14 @@ jobs:
       run: |
         nmake /S
 
-    - name: Download coreinfo
+    - name: Install
       continue-on-error: true
-      uses: deep-soft/actions-download-file@v1.4.0
-      with:
-        url: "https://download.sysinternals.com/files/Coreinfo.zip"
-        target: _build/coreinfo/
-
-    - name: Get cpu info
-      continue-on-error: true
-      working-directory: _build
+      # Run on 64 bit only as 32 bit is slow enough already
+      #if: $${{ matrix.platform.arch == 'win64' }}
       run: |
-        7z.exe x coreinfo/Coreinfo.zip
-        ./Coreinfo64.exe -accepteula -f
-        ./apps/openssl.exe version -c
-
-    - name: Test
-      continue-on-error: true
+        mkdir _dest
+        nmake install DESTDIR=_dest
       working-directory: _build
-      run: |
-        nmake test VERBOSE_FAILURE=yes HARNESS_JOBS=4
 
 # zip release begin
     - name: Create Zip Archive Release
@@ -278,6 +266,27 @@ jobs:
           ${{ env.ZIP_RELEASE_ARCHIVE }}
 # zip release end
 
+    - name: Download coreinfo
+      continue-on-error: true
+      uses: deep-soft/actions-download-file@v1.4.0
+      with:
+        url: "https://download.sysinternals.com/files/Coreinfo.zip"
+        target: _build/coreinfo/
+
+    - name: Get cpu info
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        7z.exe x coreinfo/Coreinfo.zip
+        ./Coreinfo64.exe -accepteula -f
+        ./apps/openssl.exe version -c
+
+    - name: Test
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake test VERBOSE_FAILURE=yes HARNESS_JOBS=4
+
 # zip All begin
     - name: Create Zip Archive All
       if: ${{ inputs.build_archive }}
@@ -292,7 +301,7 @@ jobs:
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Publish
+    - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
       uses: deep-soft/action-gh-release@v1
@@ -341,26 +350,14 @@ jobs:
       run: |
         nmake # verbose, so no /S here
 
-    - name: Download coreinfo
+    - name: Install
       continue-on-error: true
-      uses: deep-soft/actions-download-file@v1.4.0
-      with:
-        url: "https://download.sysinternals.com/files/Coreinfo.zip"
-        target: _build/coreinfo/
-
-    - name: Get cpu info
-      continue-on-error: true
-      working-directory: _build
+      # Run on 64 bit only as 32 bit is slow enough already
+      #if: $${{ matrix.platform.arch == 'win64' }}
       run: |
-        7z.exe x coreinfo/Coreinfo.zip
-        ./Coreinfo64.exe -accepteula -f
-        ./apps/openssl.exe version -c
-
-    - name: Test
-      continue-on-error: true
+        mkdir _dest
+        nmake install DESTDIR=_dest
       working-directory: _build
-      run: |
-        nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
 
 # zip release begin
     - name: Create Zip Archive Release
@@ -386,6 +383,27 @@ jobs:
           ${{ env.ZIP_RELEASE_ARCHIVE }}
 # zip release end
 
+    - name: Download coreinfo
+      continue-on-error: true
+      uses: deep-soft/actions-download-file@v1.4.0
+      with:
+        url: "https://download.sysinternals.com/files/Coreinfo.zip"
+        target: _build/coreinfo/
+
+    - name: Get cpu info
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        7z.exe x coreinfo/Coreinfo.zip
+        ./Coreinfo64.exe -accepteula -f
+        ./apps/openssl.exe version -c
+
+    - name: Test
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
+
 # zip All begin
     - name: Create Zip Archive All
       if: ${{ inputs.build_archive }}
@@ -400,7 +418,7 @@ jobs:
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Publish
+    - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
       uses: deep-soft/action-gh-release@v1

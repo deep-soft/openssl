@@ -6,7 +6,9 @@
 # https://www.openssl.org/source/license.html
 
 name: act - release - min-plain-shared - Windows GitHub CI
-#2023-12-21 13:00
+# 2023-12-21 13:30
+#
+#
 
 on:
   workflow_dispatch:
@@ -48,7 +50,7 @@ on:
 
 env:
   DEBUG_LS: yes
-  TAG_NAME: release
+  TAG_NAME: "openssl"
   RELEASE_NAME: openssl
   RELEASE_DIR: "_build/_dest"
   VERSION: 3.2.0-dev
@@ -74,7 +76,7 @@ jobs:
         job_type:
           - type: shared
     runs-on: ${{ matrix.os }}
-    name:  ${{ matrix.os }}-${{ matrix.job_type }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}
     steps:
     - name: Checkout
       uses: deep-soft/checkout@v4
@@ -103,41 +105,94 @@ jobs:
         perl configdata.pm --dump
 
     - name: Build
+      continue-on-error: true
       working-directory: _build
       run: |
         nmake /S
 
     - name: Download coreinfo
+      continue-on-error: true
       uses: deep-soft/actions-download-file@v1.4.0
       with:
         url: "https://download.sysinternals.com/files/Coreinfo.zip"
         target: _build/coreinfo/
 
     - name: Get cpu info
-      working-directory: _build
       continue-on-error: true
+      working-directory: _build
       run: |
         7z.exe x coreinfo/Coreinfo.zip
         ./Coreinfo64.exe -accepteula -f
         ./apps/openssl.exe version -c
 
     - name: Check platform symbol usage
+      continue-on-error: true
       working-directory: _build
       run: |
        perl ../util/checkplatformsyms.pl ../util/platform_symbols/windows-symbols.txt libcrypto-3-x64.dll ./libssl-3-x64.dll
 
     - name: Test
+      continue-on-error: true
       working-directory: _build
       run: |
         nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
 
     - name: Install
+      continue-on-error: true
       # Run on 64 bit only as 32 bit is slow enough already
       if: $${{ matrix.platform.arch == 'win64' }}
       run: |
         mkdir _dest
         nmake install DESTDIR=_dest
       working-directory: _build
+
+# zip release begin
+    - name: Create Zip Archive Release
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}.zip'
+        directory: '${{ env.RELEASE_DIR }}'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+# zip release end
+
+# zip All begin
+    - name: Create Zip Archive All
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}-ALL.zip'
+        directory: '.'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}-ALL
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+# zip release end
 
   plain:
     if: ${{ inputs.plain }}
@@ -149,7 +204,7 @@ jobs:
         job_type:
           - type: plain
     runs-on: ${{ matrix.os }}
-    name:  ${{ matrix.os }}-${{ matrix.job_type }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}
     steps:
     - name: Checkout
       uses: deep-soft/checkout@v4
@@ -166,34 +221,86 @@ jobs:
         mkdir _build
 
     - name: Config
+      continue-on-error: true
       working-directory: _build
       run: |
         perl ..\Configure --banner=Configured no-makedepend no-shared no-fips enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-trace enable-crypto-mdebug VC-WIN64A-masm
         perl configdata.pm --dump
 
     - name: Build
+      continue-on-error: true
       working-directory: _build
       run: |
         nmake /S
 
     - name: Download coreinfo
+      continue-on-error: true
       uses: deep-soft/actions-download-file@v1.4.0
       with:
         url: "https://download.sysinternals.com/files/Coreinfo.zip"
         target: _build/coreinfo/
 
     - name: Get cpu info
-      working-directory: _build
       continue-on-error: true
+      working-directory: _build
       run: |
         7z.exe x coreinfo/Coreinfo.zip
         ./Coreinfo64.exe -accepteula -f
         ./apps/openssl.exe version -c
 
     - name: Test
+      continue-on-error: true
       working-directory: _build
       run: |
         nmake test VERBOSE_FAILURE=yes HARNESS_JOBS=4
+
+# zip release begin
+    - name: Create Zip Archive Release
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}.zip'
+        directory: '${{ env.RELEASE_DIR }}'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+# zip release end
+
+# zip All begin
+    - name: Create Zip Archive All
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}-ALL.zip'
+        directory: '.'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}-ALL
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+# zip release end
 
   minimal:
     if: ${{ inputs.minimal }}
@@ -205,7 +312,7 @@ jobs:
         job_type:
           - type: minimal
     runs-on: ${{ matrix.os }}
-    name:  ${{ matrix.os }}-${{ matrix.job_type }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}
     steps:
     - name: Checkout
       uses: deep-soft/checkout@v4
@@ -222,79 +329,83 @@ jobs:
         mkdir _build
 
     - name: Config
+      continue-on-error: true
       working-directory: _build
       run: |
         perl ..\Configure --banner=Configured no-makedepend no-bulk no-deprecated no-fips no-asm no-threads -DOPENSSL_SMALL_FOOTPRINT
         perl configdata.pm --dump
 
     - name: Build
+      continue-on-error: true
       working-directory: _build
       run: |
         nmake # verbose, so no /S here
 
     - name: Download coreinfo
+      continue-on-error: true
       uses: deep-soft/actions-download-file@v1.4.0
       with:
         url: "https://download.sysinternals.com/files/Coreinfo.zip"
         target: _build/coreinfo/
 
     - name: Get cpu info
-      working-directory: _build
       continue-on-error: true
+      working-directory: _build
       run: |
         7z.exe x coreinfo/Coreinfo.zip
         ./Coreinfo64.exe -accepteula -f
         ./apps/openssl.exe version -c
 
     - name: Test
+      continue-on-error: true
       working-directory: _build
       run: |
         nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
 
-# release
-    - name: Create release archive
-      if: ${{ inputs.release_archive }}
-      uses: deep-soft/zip_release@v2
-      continue-on-error: true
-      with:
-        working-directory: ./
-
-    - name: Publish release archive
-      if: ${{ inputs.release_archive }}
-      continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
-      with:
-        draft: true
-        tag_name: ${{ env.TAG_NAME }}
-        files: |
-          ${{ env.ASSET_RELEASE }}
-
-
-
 # zip release begin
     - name: Create Zip Archive Release
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}.zip'
-        directory: '_build'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}.zip'
+        directory: '${{ env.RELEASE_DIR }}'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
         path: '.'
       # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Upload zip
-      continue-on-error: true
-      uses: deep-soft/upload-artifact@main
-      with:
-        name: '${{ env.TAG_NAME }}-${{ env.VERSION }}.zip'
-        path: '${{ env.TAG_NAME }}-${{ env.VERSION }}.zip'
-
     - name: Publish
+      if: ${{ inputs.release_archive }}
       continue-on-error: true
       uses: deep-soft/action-gh-release@v1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+# zip release end
+
+# zip All begin
+    - name: Create Zip Archive All
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.VERSION }}-${{ matrix.os }}-${{ matrix.job_type }}-ALL.zip'
+        directory: '.'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.VERSION }}-ALL
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
 # zip release end

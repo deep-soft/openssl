@@ -6,7 +6,7 @@
 # https://www.openssl.org/source/license.html
 
 name: act-Windows
-# 2023-12-21 21:30
+# 2023-12-21 21:40
 #
 #
 
@@ -55,7 +55,6 @@ env:
   TAG_REF:      "0000000"
   PROG_NAME:    "openssl"
   PROG_VERSION: "0.0.0"
-  VERSION:      "0.0.0"
   RELEASE_DIR:  "_build/_dest"
   INSTALL_DIR:  "_build/_dest/Program Files/OpenSSL"
 
@@ -177,7 +176,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
         directory: '${{ env.INSTALL_DIR }}'
         exclusions: '*.map *.pdb'
         recursive_exclusions: '*.map *.pdb'
@@ -230,7 +229,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}-ALL.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -255,6 +254,8 @@ jobs:
         os:
           - windows-2019
           - windows-2022
+        platform:
+          - arch: win64
         job_type:
           - type: plain
     runs-on: ${{ matrix.os }}
@@ -354,7 +355,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
         directory: '${{ env.INSTALL_DIR }}'
         exclusions: '*.map *.pdb'
         recursive_exclusions: '*.map *.pdb'
@@ -401,7 +402,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}-ALL.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -426,6 +427,8 @@ jobs:
         os:
           - windows-2019
           - windows-2022
+        platform:
+          - arch: win64
         job_type:
           - type: minimal
     runs-on: ${{ matrix.os }}
@@ -525,7 +528,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
         directory: '${{ env.INSTALL_DIR }}'
         exclusions: '*.map *.pdb'
         recursive_exclusions: '*.map *.pdb'
@@ -572,7 +575,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}-ALL.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'

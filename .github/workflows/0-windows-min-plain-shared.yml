@@ -5,7 +5,7 @@
 # in the file LICENSE in the source distribution or at
 # https://www.openssl.org/source/license.html
 
-name: act - release - min-plain-shared - Windows GitHub CI
+name: act-Windows
 # 2023-12-21 13:30
 #
 #

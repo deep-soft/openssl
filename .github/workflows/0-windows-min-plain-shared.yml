@@ -55,8 +55,9 @@ env:
   TAG_REF:      "0000000"
   PROG_NAME:    "openssl"
   PROG_VERSION: "0.0.0"
-  RELEASE_DIR:  "_build/_dest"
-  INSTALL_DIR:  "_build/_dest/Program Files/OpenSSL"
+  RELEASE_DIR:      "_build/_dest"
+  INSTALL_DIR:      "_build/_dest/Program Files/OpenSSL"
+  INSTALL_DIR_X86:  "_build/_dest/Program Files (x86)/OpenSSL"
 
 jobs:
   shared:
@@ -129,6 +130,9 @@ jobs:
         echo "REF: ${{ env.TAG_REF }}"
         echo "BLD: ${{ env.TAG_BUILD }}"
         echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+        if [[ "${{ matrix.platform.arch }}" = "win32" ]]; then
+          echo "INSTALL_DIR=${{ env.INSTALL_DIR_X86 }}" >> $GITHUB_ENV
+        fi
 ## - get ref set build - end
 
     - name: Checkout fuzz/corpora submodule
@@ -313,6 +317,9 @@ jobs:
         echo "REF: ${{ env.TAG_REF }}"
         echo "BLD: ${{ env.TAG_BUILD }}"
         echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+        if [[ "${{ matrix.platform.arch }}" = "win32" ]]; then
+          echo "INSTALL_DIR=${{ env.INSTALL_DIR_X86 }}" >> $GITHUB_ENV
+        fi
 ## - get ref set build - end
 
     - name: Checkout fuzz/corpora submodule
@@ -486,6 +493,9 @@ jobs:
         echo "REF: ${{ env.TAG_REF }}"
         echo "BLD: ${{ env.TAG_BUILD }}"
         echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+        if [[ "${{ matrix.platform.arch }}" = "win32" ]]; then
+          echo "INSTALL_DIR=${{ env.INSTALL_DIR_X86 }}" >> $GITHUB_ENV
+        fi
 ## - get ref set build - end
 
     - name: Checkout fuzz/corpora submodule

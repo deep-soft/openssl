@@ -31,7 +31,7 @@ jobs:
           no-ec,
           no-ecx,
           no-http,
-          no-legacy enable-unstable-qlog,
+          no-legacy,
           no-sock,
           enable-ssl-trace,
           no-stdio,

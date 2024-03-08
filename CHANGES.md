@@ -40,6 +40,19 @@ OpenSSL 3.3
 
    *Job Snijders*
 
+ * Unknown entries in TLS SignatureAlgorithms, ClientSignatureAlgorithms
+   config options and the respective calls to SSL[_CTX]_set1_sigalgs() and
+   SSL[_CTX]_set1_client_sigalgs() that start with `?` character are
+   ignored and the configuration will still be used.
+
+   Similarly unknown entries that start with `?` character in a TLS
+   Groups config option or set with SSL[_CTX]_set1_groups_list() are ignored
+   and the configuration will still be used.
+
+   In both cases if the resulting list is empty, an error is returned.
+
+   *Tomáš Mráz*
+
  * The EVP_PKEY_fromdata function has been augmented to allow for the derivation
    of CRT (Chinese Remainder Theorem) parameters when requested.  See the
    OSSL_PKEY_PARAM_RSA_DERIVE_FROM_PQ param in the EVP_PKEY-RSA documentation.
@@ -111,8 +124,8 @@ OpenSSL 3.3
    The qlog output from OpenSSL currently uses a pre-standard draft version of
    qlog. The output from OpenSSL will change in incompatible ways in future
    releases, and is not subject to any format stability or compatibility
-   guarantees at this time; therefore this functionality must currently be
-   enabled with the build-time option `enable-unstable-qlog`. See the
+   guarantees at this time. This functionality can be
+   disabled with the build-time option `no-unstable-qlog`. See the
    openssl-qlog(7) manpage for details.
 
    *Hugo Landau*

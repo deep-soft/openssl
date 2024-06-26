@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2015-2024 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -388,4 +388,10 @@ STACK_OF(X509_ATTRIBUTE) *ossl_x509at_add1_attr_by_txt(STACK_OF(X509_ATTRIBUTE) 
                                                        int type,
                                                        const unsigned char *bytes,
                                                        int len);
+                                            
+int ossl_print_attribute_value(BIO *out,
+                               int obj_nid,
+                               const ASN1_TYPE *av,
+                               int indent);
+
 #endif  /* OSSL_CRYPTO_X509_H */

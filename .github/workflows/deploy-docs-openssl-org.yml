@@ -1,12 +1,13 @@
 name: "Trigger docs.openssl.org deployment"
 
 on:
-  push:
-    branches:
-      - "openssl-3.[0-9]+"
-      - "master"
-    paths:
-      - "doc/man*/**"
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - "openssl-3.[0-9]+"
+#      - "master"
+#    paths:
+#      - "doc/man*/**"
 
 jobs:
   trigger:

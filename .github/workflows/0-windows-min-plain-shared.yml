@@ -6,7 +6,7 @@
 # https://www.openssl.org/source/license.html
 
 name: act-Windows
-# 2023-12-21 21:40
+# 2024-09-13 16:15
 # 0-windows-min-plain-shared.yml
 #
 
@@ -190,7 +190,7 @@ jobs:
     - name: Publish
       if: ${{ inputs.release_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
         files: |
@@ -200,7 +200,7 @@ jobs:
 
     - name: Download coreinfo
       continue-on-error: true
-      uses: deep-soft/actions-download-file@v1.4.0
+      uses: deep-soft/actions-download-file@v1.6.0
       with:
         url: "https://download.sysinternals.com/files/Coreinfo.zip"
         target: _build/coreinfo/
@@ -243,7 +243,7 @@ jobs:
     - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
         files: |
@@ -372,7 +372,7 @@ jobs:
     - name: Publish
       if: ${{ inputs.release_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
         files: |
@@ -382,7 +382,7 @@ jobs:
 
     - name: Download coreinfo
       continue-on-error: true
-      uses: deep-soft/actions-download-file@v1.4.0
+      uses: deep-soft/actions-download-file@v1.6.0
       with:
         url: "https://download.sysinternals.com/files/Coreinfo.zip"
         target: _build/coreinfo/
@@ -419,7 +419,7 @@ jobs:
     - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
         files: |
@@ -548,7 +548,7 @@ jobs:
     - name: Publish
       if: ${{ inputs.release_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
         files: |
@@ -558,7 +558,7 @@ jobs:
 
     - name: Download coreinfo
       continue-on-error: true
-      uses: deep-soft/actions-download-file@v1.4.0
+      uses: deep-soft/actions-download-file@v1.6.0
       with:
         url: "https://download.sysinternals.com/files/Coreinfo.zip"
         target: _build/coreinfo/
@@ -595,7 +595,7 @@ jobs:
     - name: Publish ALL
       if: ${{ inputs.build_archive }}
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
         files: |

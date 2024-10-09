@@ -8,10 +8,10 @@
 name: FIPS and ABI Changed Label
 on:
   workflow_dispatch:
-#  workflow_run:
-#    workflows: ["FIPS Check and ABIDIFF"]
-#    types:
-#      - completed
+  workflow_run:
+    workflows: ["FIPS Check and ABIDIFF"]
+    types:
+      - completed
 
 permissions:
   contents: read

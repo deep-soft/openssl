@@ -7,9 +7,7 @@
 
 name: Coding style validation 
 
-#on: [pull_request]
-on:
-  workflow_dispatch:
+on: [pull_request]
 
 env:
   PR_NUMBER: ${{ github.event.number }}

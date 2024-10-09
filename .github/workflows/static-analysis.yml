@@ -7,12 +7,10 @@
 
 name: Static Analysis
 
-#Run once a day
-#on:
-#  schedule:
-#    - cron:  '20 0 * * *'
+# Run once a day
 on:
-  workflow_dispatch:
+  schedule:
+    - cron:  '20 0 * * *'
 
 permissions:
   contents: read

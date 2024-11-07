@@ -363,8 +363,10 @@ static int ecdh_cofactor_derive_test(int tstid)
     if (!ec_cofactors)
         return TEST_skip("not supported by FIPS provider version");
 
-    if (!TEST_ptr(peer1 = EVP_PKEY_Q_keygen(libctx, NULL, "EC", curve))
-            || !TEST_ptr(peer2 = EVP_PKEY_Q_keygen(libctx, NULL, "EC", curve)))
+    if (!TEST_ptr(peer1 = EVP_PKEY_Q_keygen(libctx, NULL, "EC", curve)))
+        return TEST_skip("Curve %s not supported by the FIPS provider", curve);
+
+    if (!TEST_ptr(peer2 = EVP_PKEY_Q_keygen(libctx, NULL, "EC", curve)))
         goto err;
 
     params[1] = OSSL_PARAM_construct_end();
@@ -1502,7 +1504,7 @@ static int rsa_decryption_primitive_test(int id)
     BN_CTX *bn_ctx = NULL;
     const struct rsa_decrypt_prim_st *tst  = &rsa_decrypt_prim_data[id];
 
-    if (!TEST_ptr(pkey = EVP_PKEY_Q_keygen(libctx, NULL, "RSA", 2048))
+    if (!TEST_ptr(pkey = EVP_PKEY_Q_keygen(libctx, NULL, "RSA", (size_t)2048))
         || !TEST_true(pkey_get_bn_bytes(pkey, OSSL_PKEY_PARAM_RSA_N, &n, &n_len))
         || !TEST_true(pkey_get_bn_bytes(pkey, OSSL_PKEY_PARAM_RSA_E, &e, &e_len))
         || !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, ""))

@@ -33,7 +33,8 @@ This release is in development.
 This release incorporates the following potentially significant or incompatible
 changes:
 
-  * none yet
+  * Default encryption cipher for the `req`, `cms`, and `smime` applications
+    changed from `des-ede3-cbc` to `aes-256-cbc`.
 
 This release adds the following new features:
 
@@ -115,7 +116,18 @@ This release adds the following new features:
 OpenSSL 3.3
 -----------
 
-### Major changes between OpenSSL 3.3.1 and OpenSSL 3.3.2 [under development]
+### Major changes between OpenSSL 3.3.2 and OpenSSL 3.3.3 [under development]
+
+OpenSSL 3.3.3 is a security patch release. The most severe CVE fixed in this
+release is Low.
+
+This release incorporates the following bug fixes and mitigations:
+
+  * Fixed possible OOB memory access with invalid low-level GF(2^m) elliptic
+    curve parameters.
+    ([CVE-2024-9143])
+
+### Major changes between OpenSSL 3.3.1 and OpenSSL 3.3.2 [3 Sep 2024]
 
 OpenSSL 3.3.2 is a security patch release. The most severe CVE fixed in this
 release is Moderate.
@@ -1836,6 +1848,7 @@ OpenSSL 0.9.x
 
 <!-- Links -->
 
+[CVE-2024-9143]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-9143
 [CVE-2024-6119]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-6119
 [CVE-2024-5535]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-5535
 [CVE-2024-4741]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-4741

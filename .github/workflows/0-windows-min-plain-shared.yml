@@ -1,0 +1,604 @@
+# Copyright 2021-2023 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License 2.0 (the "License").  You may not use
+# this file except in compliance with the License.  You can obtain a copy
+# in the file LICENSE in the source distribution or at
+# https://www.openssl.org/source/license.html
+
+name: act-Windows
+# 2024-09-13 16:15
+# 0-windows-min-plain-shared.yml
+#
+
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: Run test after build
+        type: boolean
+        required: true
+        default: false
+      minimal:
+        description: Minimal version
+        type: boolean
+        required: true
+        default: true
+      plain:
+        description: Plain version
+        type: boolean
+        required: true
+        default: true
+      shared:
+        description: Shared version
+        type: boolean
+        required: true
+        default: true
+      release_archive:
+        description: Create release archive
+        type: boolean
+        required: true
+        default: true
+      build_archive:
+        description: Create build archive with all files
+        type: boolean
+        required: true
+        default: false
+#  [pull_request, push]
+
+# permissions:
+#   contents: read
+
+env:
+  TAG_NAME:     "OpenSSL"
+  TAG_VERSION:  "openssl-0.0.0-dev"
+  TAG_BUILD:    "-b"
+  TAG_REF:      "0000000"
+  PROG_NAME:    "openssl"
+  PROG_VERSION: "0.0.0"
+  RELEASE_DIR:      "_build/_dest"
+  INSTALL_DIR:      "_build/_dest/Program Files/OpenSSL"
+  INSTALL_DIR_X86:  "_build/_dest/Program Files (x86)/OpenSSL"
+
+jobs:
+  shared:
+    if: ${{ inputs.shared }}
+    # Run a job for each of the specified target architectures:
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+          - windows-2022
+        platform:
+          - arch: win64
+            config: enable-fips
+          - arch: win32
+            config: --strict-warnings no-fips
+        job_type:
+          - type: shared
+    runs-on: ${{ matrix.os }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}
+    steps:
+    - name: Checkout
+      uses: deep-soft/checkout@v4
+
+## -- read from VERSION.dat - begin
+    - name: Read version from VERSION.dat
+      continue-on-error: true
+      shell: bash
+      run: |
+        _major_=$(grep "MAJOR" VERSION.dat | awk -F "=" '{print $2}');
+        _minor_=$(grep "MINOR" VERSION.dat | awk -F "=" '{print $2}');
+        _patch_=$(grep "PATCH" VERSION.dat | awk -F "=" '{print $2}');
+        _prert_=$(grep "PRE_RELEASE_TAG" VERSION.dat | awk -F "=" '{print $2}');
+        _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
+        echo "PROG_VERSION=[$_prog_version_]"
+        echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
+
+    - name: Set TAG_VERSION
+      shell: bash
+      run: |
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
+
+    - name: Print env.PROG_VERSION
+      shell: bash
+      run: |
+        echo "show new value for env.PROG_VERSION"
+        echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
+## -- read from VERSION.dat - end
+
+## - get ref set build - begin
+    - name: Get ref, set build version
+      shell: bash
+      run: |
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        echo "TAG_REF=$_ref_" >> $GITHUB_ENV
+        _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
+        echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
+        echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+        echo "TAG_DATE=$_date_" >> $GITHUB_ENV
+
+    - name: Print ref, build version
+      shell: bash
+      run: |
+        echo "REF: ${{ env.TAG_REF }}"
+        echo "BLD: ${{ env.TAG_BUILD }}"
+        echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+        if [[ "${{ matrix.platform.arch }}" = "win32" ]]; then
+          echo "INSTALL_DIR=${{ env.INSTALL_DIR_X86 }}" >> $GITHUB_ENV
+        fi
+## - get ref set build - end
+
+    - name: Checkout fuzz/corpora submodule
+      run: git submodule update --init --depth 1 fuzz/corpora
+
+    - name: MSVC-dev-cmd
+      uses: deep-soft/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.platform.arch }}
+
+    - name: Setup NASM
+      uses: deep-soft/setup-nasm@v1
+      with:
+        platform: ${{ matrix.platform.arch }}
+
+    - name: Prepare the build directory
+      run: |
+        mkdir _build
+
+    - name: Config
+      working-directory: _build
+      run: |
+        perl ..\Configure --banner=Configured no-makedepend ${{ matrix.platform.config }}
+        perl configdata.pm --dump
+
+    - name: Build
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake /S
+
+    - name: Install
+      continue-on-error: true
+      # Run on 64 bit only as 32 bit is slow enough already
+      #if: $${{ matrix.platform.arch == 'win64' }}
+      run: |
+        mkdir _dest
+        nmake install DESTDIR=_dest
+      working-directory: _build
+
+# zip release begin
+    - name: Create Zip Archive Release
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
+        directory: '${{ env.INSTALL_DIR }}'
+        exclusions: '*.map *.pdb'
+        recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          _tag_name_.txt
+# zip release end
+
+    - name: Download coreinfo
+      continue-on-error: true
+      uses: deep-soft/actions-download-file@v1.6.0
+      with:
+        url: "https://download.sysinternals.com/files/Coreinfo.zip"
+        target: _build/coreinfo/
+
+    - name: Get cpu info
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        7z.exe x coreinfo/Coreinfo.zip
+        ./Coreinfo64.exe -accepteula -f
+        ./apps/openssl.exe version -c
+
+    - name: Check platform symbol usage
+      continue-on-error: true
+      working-directory: _build
+      run: |
+       perl ../util/checkplatformsyms.pl ../util/platform_symbols/windows-symbols.txt libcrypto-3-x64.dll ./libssl-3-x64.dll
+
+    - name: Test
+      if: ${{ inputs.test }}
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
+
+# zip All begin
+    - name: Create Zip Archive All
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
+        directory: '.'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish ALL
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          _tag_name_.txt
+# zip release end
+
+  plain:
+    if: ${{ inputs.plain }}
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+          - windows-2022
+        platform:
+          - arch: win64
+        job_type:
+          - type: plain
+    runs-on: ${{ matrix.os }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}
+    steps:
+    - name: Checkout
+      uses: deep-soft/checkout@v4
+
+## -- read from VERSION.dat - begin
+    - name: Read version from VERSION.dat
+      continue-on-error: true
+      shell: bash
+      run: |
+        _major_=$(grep "MAJOR" VERSION.dat | awk -F "=" '{print $2}');
+        _minor_=$(grep "MINOR" VERSION.dat | awk -F "=" '{print $2}');
+        _patch_=$(grep "PATCH" VERSION.dat | awk -F "=" '{print $2}');
+        _prert_=$(grep "PRE_RELEASE_TAG" VERSION.dat | awk -F "=" '{print $2}');
+        _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
+        echo "PROG_VERSION=[$_prog_version_]"
+        echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
+
+    - name: Set TAG_VERSION
+      shell: bash
+      run: |
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
+
+    - name: Print env.PROG_VERSION
+      shell: bash
+      run: |
+        echo "show new value for env.PROG_VERSION"
+        echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
+## -- read from VERSION.dat - end
+
+## - get ref set build - begin
+    - name: Get ref, set build version
+      shell: bash
+      run: |
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        echo "TAG_REF=$_ref_" >> $GITHUB_ENV
+        _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
+        echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
+        echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+        echo "TAG_DATE=$_date_" >> $GITHUB_ENV
+
+    - name: Print ref, build version
+      shell: bash
+      run: |
+        echo "REF: ${{ env.TAG_REF }}"
+        echo "BLD: ${{ env.TAG_BUILD }}"
+        echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+        if [[ "${{ matrix.platform.arch }}" = "win32" ]]; then
+          echo "INSTALL_DIR=${{ env.INSTALL_DIR_X86 }}" >> $GITHUB_ENV
+        fi
+## - get ref set build - end
+
+    - name: Checkout fuzz/corpora submodule
+      run: |
+        git submodule update --init --depth 1 fuzz/corpora
+
+    - name: MSVC-dev-cmd
+      uses: deep-soft/msvc-dev-cmd@v1
+
+    - name: Prepare the build directory
+      run: |
+        mkdir _build
+
+    - name: Config
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        perl ..\Configure --banner=Configured no-makedepend no-shared no-fips enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-trace enable-crypto-mdebug VC-WIN64A-masm
+        perl configdata.pm --dump
+
+    - name: Build
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake /S
+
+    - name: Install
+      continue-on-error: true
+      # Run on 64 bit only as 32 bit is slow enough already
+      #if: $${{ matrix.platform.arch == 'win64' }}
+      run: |
+        mkdir _dest
+        nmake install DESTDIR=_dest
+      working-directory: _build
+
+# zip release begin
+    - name: Create Zip Archive Release
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
+        directory: '${{ env.INSTALL_DIR }}'
+        exclusions: '*.map *.pdb'
+        recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          _tag_name_.txt
+# zip release end
+
+    - name: Download coreinfo
+      continue-on-error: true
+      uses: deep-soft/actions-download-file@v1.6.0
+      with:
+        url: "https://download.sysinternals.com/files/Coreinfo.zip"
+        target: _build/coreinfo/
+
+    - name: Get cpu info
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        7z.exe x coreinfo/Coreinfo.zip
+        ./Coreinfo64.exe -accepteula -f
+        ./apps/openssl.exe version -c
+
+    - name: Test
+      if: ${{ inputs.test }}
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake test VERBOSE_FAILURE=yes HARNESS_JOBS=4
+
+# zip All begin
+    - name: Create Zip Archive All
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
+        directory: '.'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish ALL
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          _tag_name_.txt
+# zip release end
+
+  minimal:
+    if: ${{ inputs.minimal }}
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+          - windows-2022
+        platform:
+          - arch: win64
+        job_type:
+          - type: minimal
+    runs-on: ${{ matrix.os }}
+    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}
+    steps:
+    - name: Checkout
+      uses: deep-soft/checkout@v4
+
+## -- read from VERSION.dat - begin
+    - name: Read version from VERSION.dat
+      continue-on-error: true
+      shell: bash
+      run: |
+        _major_=$(grep "MAJOR" VERSION.dat | awk -F "=" '{print $2}');
+        _minor_=$(grep "MINOR" VERSION.dat | awk -F "=" '{print $2}');
+        _patch_=$(grep "PATCH" VERSION.dat | awk -F "=" '{print $2}');
+        _prert_=$(grep "PRE_RELEASE_TAG" VERSION.dat | awk -F "=" '{print $2}');
+        _prog_version_=$_major_.$_minor_.$_patch_-$_prert_;
+        echo "PROG_VERSION=[$_prog_version_]"
+        echo "PROG_VERSION=$_prog_version_" >> $GITHUB_ENV
+
+    - name: Set TAG_VERSION
+      shell: bash
+      run: |
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}" >> $GITHUB_ENV
+
+    - name: Print env.PROG_VERSION
+      shell: bash
+      run: |
+        echo "show new value for env.PROG_VERSION"
+        echo "PROG_VERSION = ${{ env.PROG_VERSION }}"
+        echo "TAG_VERSION  = ${{ env.TAG_VERSION  }}"
+## -- read from VERSION.dat - end
+
+## - get ref set build - begin
+    - name: Get ref, set build version
+      shell: bash
+      run: |
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        echo "TAG_REF=$_ref_" >> $GITHUB_ENV
+        _build_=${{ env.TAG_BUILD }}-$_date_-$_ref_
+        echo "TAG_BUILD=$_build_" >> $GITHUB_ENV
+        echo "WORK_DIR=$(pwd)" >> $GITHUB_ENV
+        echo "TAG_DATE=$_date_" >> $GITHUB_ENV
+
+    - name: Print ref, build version
+      shell: bash
+      run: |
+        echo "REF: ${{ env.TAG_REF }}"
+        echo "BLD: ${{ env.TAG_BUILD }}"
+        echo "${{ env.TAG_NAME }}-${{ env.TAG_BUILD }}" > _tag_name_.txt
+        if [[ "${{ matrix.platform.arch }}" = "win32" ]]; then
+          echo "INSTALL_DIR=${{ env.INSTALL_DIR_X86 }}" >> $GITHUB_ENV
+        fi
+## - get ref set build - end
+
+    - name: Checkout fuzz/corpora submodule
+      run: |
+        git submodule update --init --depth 1 fuzz/corpora
+
+    - name: MSVC-dev-cmd
+      uses: deep-soft/msvc-dev-cmd@v1
+
+    - name: Prepare the build directory
+      run: |
+        mkdir _build
+
+    - name: Config
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        perl ..\Configure --banner=Configured no-makedepend no-bulk no-deprecated no-fips no-asm no-threads -DOPENSSL_SMALL_FOOTPRINT
+        perl configdata.pm --dump
+
+    - name: Build
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake # verbose, so no /S here
+
+    - name: Install
+      continue-on-error: true
+      # Run on 64 bit only as 32 bit is slow enough already
+      #if: $${{ matrix.platform.arch == 'win64' }}
+      run: |
+        mkdir _dest
+        nmake install DESTDIR=_dest
+      working-directory: _build
+
+# zip release begin
+    - name: Create Zip Archive Release
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
+        directory: '${{ env.INSTALL_DIR }}'
+        exclusions: '*.map *.pdb'
+        recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish
+      if: ${{ inputs.release_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          _tag_name_.txt
+# zip release end
+
+    - name: Download coreinfo
+      continue-on-error: true
+      uses: deep-soft/actions-download-file@v1.6.0
+      with:
+        url: "https://download.sysinternals.com/files/Coreinfo.zip"
+        target: _build/coreinfo/
+
+    - name: Get cpu info
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        7z.exe x coreinfo/Coreinfo.zip
+        ./Coreinfo64.exe -accepteula -f
+        ./apps/openssl.exe version -c
+
+    - name: Test
+      if: ${{ inputs.test }}
+      continue-on-error: true
+      working-directory: _build
+      run: |
+        nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
+
+# zip All begin
+    - name: Create Zip Archive All
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
+        directory: '.'
+        #exclusions: '*.map *.pdb'
+        #recursive_exclusions: '*.map *.pdb'
+        path: '.'
+      # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish ALL
+      if: ${{ inputs.build_archive }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        tag_name: ${{ env.TAG_NAME }}-${{ env.PROG_VERSION }}-ALL
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          _tag_name_.txt
+# zip release end

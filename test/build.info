@@ -178,6 +178,13 @@ IF[{- !$disabled{tests} -}]
   INCLUDE[tls13ccstest]=../include ../apps/include
   DEPEND[tls13ccstest]=../libcrypto ../libssl libtestutil.a
 
+  IF[{- !$disabled{ecx} && !$disabled{tls} && !$disabled{tls1_3} -}]
+    PROGRAMS{noinst}=tls13groupselection_test
+    SOURCE[tls13groupselection_test]=tls13groupselection_test.c helpers/ssltestlib.c
+    INCLUDE[tls13groupselection_test]=../include ../apps/include
+    DEPEND[tls13groupselection_test]=../libcrypto ../libssl libtestutil.a
+  ENDIF
+
   SOURCE[upcallstest]=upcallstest.c
   INCLUDE[upcallstest]=../include ../apps/include
   DEPEND[upcallstest]=../libcrypto libtestutil.a
@@ -275,6 +282,13 @@ IF[{- !$disabled{tests} -}]
     SOURCE[casttest]=casttest.c
     INCLUDE[casttest]=../include ../apps/include
     DEPEND[casttest]=../libcrypto libtestutil.a
+  ENDIF
+
+  IF[{- !$disabled{'ml-dsa'} -}]
+    PROGRAMS{noinst}=ml_dsa_test
+    SOURCE[ml_dsa_test]=ml_dsa_test.c
+    INCLUDE[ml_dsa_test]=../include ../apps/include
+    DEPEND[ml_dsa_test]=../libcrypto.a libtestutil.a
   ENDIF
 
   SOURCE[v3nametest]=v3nametest.c
@@ -539,7 +553,7 @@ IF[{- !$disabled{tests} -}]
   DEPEND[param_build_test]=../libcrypto.a libtestutil.a
 
   SOURCE[sslapitest]=sslapitest.c helpers/ssltestlib.c filterprov.c tls-provider.c
-  INCLUDE[sslapitest]=../include ../apps/include ..
+  INCLUDE[sslapitest]=../include ../apps/include ../providers/common/include ..
   DEPEND[sslapitest]=../libcrypto.a ../libssl.a libtestutil.a
 
   SOURCE[ssl_handshake_rtt_test]=ssl_handshake_rtt_test.c helpers/ssltestlib.c
@@ -997,6 +1011,18 @@ IF[{- !$disabled{tests} -}]
     INCLUDE[asn1_dsa_internal_test]=.. ../include ../apps/include
     DEPEND[asn1_dsa_internal_test]=../libcrypto.a libtestutil.a
 
+    IF[{- !$disabled{'ml-kem'} -}]
+      PROGRAMS{noinst}=ml_kem_internal_test
+      SOURCE[ml_kem_internal_test]=ml_kem_internal_test.c
+      INCLUDE[ml_kem_internal_test]=../include ../apps/include
+      DEPEND[ml_kem_internal_test]=../libcrypto.a libtestutil.a
+
+      PROGRAMS{noinst}=ml_kem_evp_extra_test
+      SOURCE[ml_kem_evp_extra_test]=ml_kem_evp_extra_test.c
+      INCLUDE[ml_kem_evp_extra_test]=../include ../apps/include
+      DEPEND[ml_kem_evp_extra_test]=../libcrypto.a libtestutil.a
+    ENDIF
+
     SOURCE[keymgmt_internal_test]=keymgmt_internal_test.c
     INCLUDE[keymgmt_internal_test]=.. ../include ../apps/include
     DEPEND[keymgmt_internal_test]=../libcrypto.a libtestutil.a
@@ -1117,6 +1143,11 @@ IF[{- !$disabled{tests} -}]
   SOURCE[provider_pkey_test]=provider_pkey_test.c fake_rsaprov.c
   INCLUDE[provider_pkey_test]=../include ../apps/include
   DEPEND[provider_pkey_test]=../libcrypto libtestutil.a
+
+  PROGRAMS{noinst}=evp_skey_test
+  SOURCE[evp_skey_test]=evp_skey_test.c fake_cipherprov.c
+  INCLUDE[evp_skey_test]=../include ../apps/include
+  DEPEND[evp_skey_test]=../libcrypto libtestutil.a
 
   PROGRAMS{noinst}=provider_default_search_path_test
   SOURCE[provider_default_search_path_test]=provider_default_search_path_test.c

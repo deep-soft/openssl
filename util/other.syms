@@ -53,6 +53,8 @@ EVP_PKEY_ASN1_METHOD                    datatype
 EVP_RAND                                datatype
 EVP_RAND_CTX                            datatype
 EVP_SIGNATURE                           datatype
+EVP_SKEYMGMT                            datatype
+EVP_SKEY                                datatype
 GEN_SESSION_CB                          datatype
 GENERAL_NAME                            datatype
 NAMING_AUTHORITY                        datatype
@@ -70,6 +72,12 @@ OSSL_ENCODER_CTX                        datatype
 OSSL_ENCODER_CONSTRUCT                  datatype
 OSSL_ENCODER_CLEANUP                    datatype
 OSSL_ENCODER_INSTANCE                   datatype
+OSSL_FUNC_SSL_QUIC_TLS_crypto_send_fn   datatype
+OSSL_FUNC_SSL_QUIC_TLS_crypto_recv_rcd_fn   datatype
+OSSL_FUNC_SSL_QUIC_TLS_crypto_release_rcd_fn    datatype
+OSSL_FUNC_SSL_QUIC_TLS_yield_secret_fn  datatype
+OSSL_FUNC_SSL_QUIC_TLS_got_transport_params_fn  datatype
+OSSL_FUNC_SSL_QUIC_TLS_alert_fn         datatype
 OSSL_HTTP_bio_cb_t                      datatype
 OSSL_HTTP_REQ_CTX                       datatype
 OSSL_IETF_ATTR_SYNTAX                   datatype
@@ -536,6 +544,7 @@ SSL_CTX_disable_ct                      define
 SSL_CTX_generate_session_ticket_fn      define
 SSL_CTX_get0_chain_certs                define
 SSL_CTX_get0_chain_cert_store           define
+SSL_CTX_get0_implemented_groups         define
 SSL_CTX_get0_verify_cert_store          define
 SSL_CTX_get_default_read_ahead          define
 SSL_CTX_get_extra_chain_certs           define

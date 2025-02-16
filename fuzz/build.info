@@ -14,6 +14,14 @@ IF[{- !$disabled{"fuzz-afl"} || !$disabled{"fuzz-libfuzzer"} -}]
   PROGRAMS{noinst}=v3name
   PROGRAMS{noinst}=provider
 
+  IF[{- !$disabled{"ml-kem"} -}]
+    PROGRAMS{noinst}=ml-kem
+  ENDIF
+
+  IF[{- !$disabled{"ml-dsa"} -}]
+    PROGRAMS{noinst}=ml-dsa
+  ENDIF
+
   IF[{- !$disabled{"cmp"} -}]
     PROGRAMS{noinst}=cmp
   ENDIF
@@ -141,6 +149,14 @@ IF[{- !$disabled{"fuzz-afl"} || !$disabled{"fuzz-libfuzzer"} -}]
   SOURCE[provider]=provider.c driver.c
   INCLUDE[provider]=../include {- $ex_inc -}
   DEPEND[provider]=../libcrypto {- $ex_lib -}
+
+  SOURCE[ml-kem]=ml-kem.c driver.c
+  INCLUDE[ml-kem]=../include {- $ex_inc -}
+  DEPEND[ml-kem]=../libcrypto {- $ex_lib -}
+
+  SOURCE[ml-dsa]=ml-dsa.c driver.c
+  INCLUDE[ml-dsa]=../include {- $ex_inc -}
+  DEPEND[ml-dsa]=../libcrypto {- $ex_lib -}
 ENDIF
 
 IF[{- !$disabled{tests} -}]
@@ -148,6 +164,14 @@ IF[{- !$disabled{tests} -}]
   PROGRAMS{noinst}=punycode-test pem-test decoder-test hashtable-test acert-test
   PROGRAMS{noinst}=v3name-test
   PROGRAMS{noinst}=provider-test
+
+  IF[{- !$disabled{"ml-kem"} -}]
+    PROGRAMS{noinst}=ml-kem-test
+  ENDIF
+
+  IF[{- !$disabled{"ml-dsa"} -}]
+    PROGRAMS{noinst}=ml-dsa-test
+  ENDIF
 
   IF[{- !$disabled{"cmp"} -}]
     PROGRAMS{noinst}=cmp-test
@@ -197,6 +221,15 @@ IF[{- !$disabled{tests} -}]
   SOURCE[cmp-test]=cmp.c test-corpus.c fuzz_rand.c
   INCLUDE[cmp-test]=../include
   DEPEND[cmp-test]=../libcrypto.a
+
+  SOURCE[ml-kem-test]=ml-kem.c test-corpus.c fuzz_rand.c
+  INCLUDE[ml-kem-test]=../include
+  DEPEND[ml-kem-test]=../libcrypto.a
+
+  SOURCE[ml-dsa-test]=ml-dsa.c test-corpus.c fuzz_rand.c
+  INCLUDE[ml-dsa-test]=../include
+  DEPEND[ml-dsa-test]=../libcrypto.a
+
   # referring to static lib allows using non-exported functions
 
   SOURCE[cms-test]=cms.c test-corpus.c

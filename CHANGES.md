@@ -30,25 +30,70 @@ OpenSSL 3.5
 
 ### Changes between 3.4 and 3.5 [xx XXX xxxx]
 
-* New inline functions were added to support loads and stores of unsigned
-  16-bit, 32-bit and 64-bit integers in either little-endian or big-endian
-  form, regardless of the host byte-order.  See the `OPENSSL_load_u16_le(3)`
-  manpage for details.
+* ML-KEM as specified in FIPS 203.
 
-  *Viktor Dukhovni*
+  Based on the original implementation in BoringSSL, ported from C++ to C,
+  refactored, and integrated into the OpenSSL default and FIPS providers.
+  Including also the X25519MLKEM768, SecP256r1MLKEM768, SecP384r1MLKEM1024
+  TLS hybrid key post-quantum/classical key agreement schemes.
+  *Michael Baentsch, Viktor Dukhovni, Shane Lontis and Paul Dale*
 
-* All the BIO_meth_get_*() functions allowing reuse of the internal OpenSSL
-  BIO method implementations were deprecated. The reuse is unsafe due to
-  dependency on the code of the internal methods not changing.
+* Add ML-DSA as specified in FIPS 204.
 
-  *Tomáš Mráz*
+  The base code was derived from BoringSSL C++ code.
+  *Shane Lontis, Viktor Dukhovni and Paul Dale*
 
-* Support DEFAULT keyword and '-' prefix in SSL_CTX_set1_groups_list().
-  SSL_CTX_set1_groups_list() now supports the DEFAULT keyword which sets the
-  available groups to the default selection. The '-' prefix allows the calling
-  application to remove a group from the selection.
+ * Added new API calls to enable 3rd party QUIC stacks to use the OpenSSL TLS
+   implementation.
 
-  *Frederik Wedel-Heinen*
+   *Matt Caswell*
+
+ * The default DRBG implementations have been changed to prefer to fetch
+   algorithm implementations from the default provider (the provider the
+   DRBG implementation is built in) regardless of the default properties
+   set in the configuration file. The code will still fallback to find
+   an implementation, as done previously, if needed.
+
+   *Simo Sorce*
+
+ * Initial support for opaque symmetric keys objects.  These replace the ad-hoc byte
+   arrays that are pervasive throughout the library.
+
+   *Dmitry Belyavskiy and Simo Sorce*
+
+ * For TLSv1.3: Add capability for a client to send multiple key shares. Extend the scope of
+   `SSL_OP_CIPHER_SERVER_PREFERENCE` to cover server-side key exchange group selection.
+   Extend the server-side key exchange group selection algorithm and related group list syntax
+   to support multiple group priorities, e.g. to prioritize (hybrid-)KEMs.
+
+   *David Kelsey*, *Martin Schmatz*
+
+ * A new random generation API has been introduced which modifies all
+   of the L<RAND_bytes(3)> family of calls so they are routed through a
+   specific named provider instead of being resolved via the normal DRBG
+   chaining.  In a future OpenSSL release, this will obsolete RAND_METHOD.
+
+   *Dr Paul Dale*
+
+ * New inline functions were added to support loads and stores of unsigned
+   16-bit, 32-bit and 64-bit integers in either little-endian or big-endian
+   form, regardless of the host byte-order.  See the `OPENSSL_load_u16_le(3)`
+   manpage for details.
+
+   *Viktor Dukhovni*
+
+ * All the BIO_meth_get_*() functions allowing reuse of the internal OpenSSL
+   BIO method implementations were deprecated. The reuse is unsafe due to
+   dependency on the code of the internal methods not changing.
+
+   *Tomáš Mráz*
+
+ * Support DEFAULT keyword and '-' prefix in SSL_CTX_set1_groups_list().
+   SSL_CTX_set1_groups_list() now supports the DEFAULT keyword which sets the
+   available groups to the default selection. The '-' prefix allows the calling
+   application to remove a group from the selection.
+
+   *Frederik Wedel-Heinen*
 
  * Updated the default encryption cipher for the `req`, `cms`, and `smime` applications
    from `des-ede3-cbc` to `aes-256-cbc`.
@@ -76,6 +121,20 @@ OpenSSL 3.5
    The `-digest` and `-rawin` option may only be given with `-sign` or `verify`.
 
    *David von Oheimb*
+
+ * `X509_PURPOSE_add()` has been modified
+   to take `sname` instead of `id` as the primary purpose identifier.
+   For its convenient use, `X509_PURPOSE_get_unused_id()` has been added.
+
+   This work was sponsored by Siemens AG.
+
+   *David von Oheimb*
+
+ * Added support for central key generation in CMP.
+
+   This work was sponsored by Siemens AG.
+
+   *Rajeev Ranjan*
 
  * Optionally allow the FIPS provider to use the `JITTER` entropy source.
    Note that using this option will require the resulting FIPS provider
@@ -114,10 +173,43 @@ OpenSSL 3.5
 
    *Juhász Péter*
 
+ * Parallel dual-prime 1024/1536/2048-bit modular exponentiation for
+   AVX_IFMA capable processors (Intel Sierra Forest and its successor).
+
+   This optimization brings performance enhancement, ranging from 1.8 to 2.2
+   times, for the sign/decryption operations of rsaz-2k/3k/4k (`openssl speed rsa`)
+   on the Intel Sierra Forest.
+
+   *Zhiguo Zhou, Wangyang Guo (Intel Corp)*
+
 OpenSSL 3.4
 -----------
 
 ### Changes between 3.4.0 and 3.4.1 [xx XXX xxxx]
+
+ * Fixed RFC7250 handshakes with unauthenticated servers don't abort as expected.
+
+   Clients using RFC7250 Raw Public Keys (RPKs) to authenticate a
+   server may fail to notice that the server was not authenticated, because
+   handshakes don't abort as expected when the SSL_VERIFY_PEER verification mode
+   is set.
+
+   ([CVE-2024-12797])
+
+   *Viktor Dukhovni*
+
+ * Fixed timing side-channel in ECDSA signature computation.
+
+   There is a timing signal of around 300 nanoseconds when the top word of
+   the inverted ECDSA nonce value is zero. This can happen with significant
+   probability only for some of the supported elliptic curves. In particular
+   the NIST P-521 curve is affected. To be able to measure this leak, the
+   attacker process must either be located in the same physical computer or
+   must have a very fast network connection with low latency.
+
+   ([CVE-2024-13176])
+
+   *Tomáš Mráz*
 
  * Reverted the behavior change of CMS_get1_certs() and CMS_get1_crls()
    that happened in the 3.4.0 release. These functions now return NULL
@@ -20978,6 +21070,7 @@ ndif
 
 <!-- Links -->
 
+[CVE-2024-13176]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-13176
 [CVE-2024-9143]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-9143
 [CVE-2024-6119]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-6119
 [CVE-2024-5535]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-5535

@@ -41,6 +41,7 @@ static OSSL_FUNC_provider_gettable_params_fn fips_gettable_params;
 static OSSL_FUNC_provider_get_params_fn fips_get_params;
 static OSSL_FUNC_provider_query_operation_fn fips_query;
 static OSSL_FUNC_provider_query_operation_fn fips_query_internal;
+static OSSL_FUNC_provider_random_bytes_fn fips_random_bytes;
 
 #define ALGC(NAMES, FUNC, CHECK)                \
     { { NAMES, FIPS_DEFAULT_PROPERTIES, FUNC }, CHECK }
@@ -119,6 +120,20 @@ void *ossl_fips_prov_ossl_ctx_new(OSSL_LIB_CTX *libctx)
 void ossl_fips_prov_ossl_ctx_free(void *fgbl)
 {
     OPENSSL_free(fgbl);
+}
+
+static int fips_random_bytes(ossl_unused void *vprov, int which,
+                             void *buf, size_t n, unsigned int strength)
+{
+    OSSL_LIB_CTX *libctx;
+    PROV_CTX *prov = (PROV_CTX *)vprov;
+
+    if (prov == NULL)
+        return 0;
+    libctx = ossl_prov_ctx_get0_libctx(prov);
+    if (which == OSSL_PROV_RANDOM_PRIVATE)
+        return RAND_priv_bytes_ex(libctx, buf, n, strength);
+    return RAND_bytes_ex(libctx, buf, n, strength);
 }
 
 /*
@@ -474,6 +489,11 @@ static const OSSL_ALGORITHM fips_signature[] = {
     { PROV_NAMES_ECDSA_SHA3_384, FIPS_DEFAULT_PROPERTIES, ossl_ecdsa_sha3_384_signature_functions },
     { PROV_NAMES_ECDSA_SHA3_512, FIPS_DEFAULT_PROPERTIES, ossl_ecdsa_sha3_512_signature_functions },
 #endif
+#ifndef OPENSSL_NO_ML_DSA
+    { PROV_NAMES_ML_DSA_44, FIPS_DEFAULT_PROPERTIES, ossl_ml_dsa_44_signature_functions },
+    { PROV_NAMES_ML_DSA_65, FIPS_DEFAULT_PROPERTIES, ossl_ml_dsa_65_signature_functions },
+    { PROV_NAMES_ML_DSA_87, FIPS_DEFAULT_PROPERTIES, ossl_ml_dsa_87_signature_functions },
+#endif
     { PROV_NAMES_HMAC, FIPS_DEFAULT_PROPERTIES,
       ossl_mac_legacy_hmac_signature_functions },
 #ifndef OPENSSL_NO_CMAC
@@ -490,6 +510,19 @@ static const OSSL_ALGORITHM fips_asym_cipher[] = {
 
 static const OSSL_ALGORITHM fips_asym_kem[] = {
     { PROV_NAMES_RSA, FIPS_DEFAULT_PROPERTIES, ossl_rsa_asym_kem_functions },
+#ifndef OPENSSL_NO_ML_KEM
+    { PROV_NAMES_ML_KEM_512, FIPS_DEFAULT_PROPERTIES, ossl_ml_kem_asym_kem_functions },
+    { PROV_NAMES_ML_KEM_768, FIPS_DEFAULT_PROPERTIES, ossl_ml_kem_asym_kem_functions },
+    { PROV_NAMES_ML_KEM_1024, FIPS_DEFAULT_PROPERTIES, ossl_ml_kem_asym_kem_functions },
+# if !defined(OPENSSL_NO_ECX)
+    { "X25519MLKEM768", FIPS_DEFAULT_PROPERTIES, ossl_mlx_kem_asym_kem_functions },
+    { "X448MLKEM1024", FIPS_DEFAULT_PROPERTIES, ossl_mlx_kem_asym_kem_functions },
+# endif
+# if !defined(OPENSSL_NO_EC)
+    { "SecP256r1MLKEM768", FIPS_DEFAULT_PROPERTIES, ossl_mlx_kem_asym_kem_functions },
+    { "SecP384r1MLKEM1024", FIPS_DEFAULT_PROPERTIES, ossl_mlx_kem_asym_kem_functions },
+# endif
+#endif
     { NULL, NULL, NULL }
 };
 
@@ -522,6 +555,14 @@ static const OSSL_ALGORITHM fips_keymgmt[] = {
       PROV_DESCS_ED448 },
 # endif
 #endif
+#ifndef OPENSSL_NO_ML_DSA
+    { PROV_NAMES_ML_DSA_44, FIPS_DEFAULT_PROPERTIES, ossl_ml_dsa_44_keymgmt_functions,
+      PROV_DESCS_ML_DSA_44 },
+    { PROV_NAMES_ML_DSA_65, FIPS_DEFAULT_PROPERTIES, ossl_ml_dsa_65_keymgmt_functions,
+      PROV_DESCS_ML_DSA_65 },
+    { PROV_NAMES_ML_DSA_87, FIPS_DEFAULT_PROPERTIES, ossl_ml_dsa_87_keymgmt_functions,
+      PROV_DESCS_ML_DSA_87 },
+#endif /* OPENSSL_NO_ML_DSA */
     { PROV_NAMES_TLS1_PRF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_keymgmt_functions,
       PROV_DESCS_TLS1_PRF_SIGN },
     { PROV_NAMES_HKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_keymgmt_functions,
@@ -531,6 +572,26 @@ static const OSSL_ALGORITHM fips_keymgmt[] = {
 #ifndef OPENSSL_NO_CMAC
     { PROV_NAMES_CMAC, FIPS_DEFAULT_PROPERTIES,
       ossl_cmac_legacy_keymgmt_functions, PROV_DESCS_CMAC_SIGN },
+#endif
+#ifndef OPENSSL_NO_ML_KEM
+    { PROV_NAMES_ML_KEM_512, FIPS_DEFAULT_PROPERTIES, ossl_ml_kem_512_keymgmt_functions,
+      PROV_DESCS_ML_KEM_512 },
+    { PROV_NAMES_ML_KEM_768, FIPS_DEFAULT_PROPERTIES, ossl_ml_kem_768_keymgmt_functions,
+      PROV_DESCS_ML_KEM_768 },
+    { PROV_NAMES_ML_KEM_1024, FIPS_DEFAULT_PROPERTIES, ossl_ml_kem_1024_keymgmt_functions,
+      PROV_DESCS_ML_KEM_1024 },
+# if !defined(OPENSSL_NO_ECX)
+    { PROV_NAMES_X25519MLKEM768, FIPS_DEFAULT_PROPERTIES, ossl_mlx_x25519_kem_kmgmt_functions,
+      PROV_DESCS_X25519MLKEM768 },
+    { PROV_NAMES_X448MLKEM1024, FIPS_DEFAULT_PROPERTIES, ossl_mlx_x448_kem_kmgmt_functions,
+      PROV_DESCS_X448MLKEM1024 },
+# endif
+# if !defined(OPENSSL_NO_EC)
+    { PROV_NAMES_SecP256r1MLKEM768, FIPS_DEFAULT_PROPERTIES, ossl_mlx_p256_kem_kmgmt_functions,
+      PROV_DESCS_SecP256r1MLKEM768 },
+    { PROV_NAMES_SecP384r1MLKEM1024, FIPS_DEFAULT_PROPERTIES, ossl_mlx_p384_kem_kmgmt_functions,
+      PROV_DESCS_SecP384r1MLKEM1024 },
+# endif
 #endif
     { NULL, NULL, NULL }
 };
@@ -604,6 +665,7 @@ static const OSSL_DISPATCH fips_dispatch_table[] = {
     { OSSL_FUNC_PROVIDER_GET_CAPABILITIES,
       (void (*)(void))ossl_prov_get_capabilities },
     { OSSL_FUNC_PROVIDER_SELF_TEST, (void (*)(void))fips_self_test },
+    { OSSL_FUNC_PROVIDER_RANDOM_BYTES, (void (*)(void))fips_random_bytes },
     OSSL_DISPATCH_END
 };
 
@@ -816,6 +878,7 @@ int OSSL_provider_init_int(const OSSL_CORE_HANDLE *handle,
     }
 
     ossl_prov_ctx_set0_libctx(*provctx, libctx);
+    ossl_prov_ctx_set0_core_get_params(*provctx, c_get_params);
     ossl_prov_ctx_set0_handle(*provctx, handle);
 
     *out = fips_dispatch_table;

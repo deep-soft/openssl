@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2020-2025 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright Siemens AG 2020
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
@@ -159,8 +159,8 @@ static int test_http_method(int do_get, int do_txt, int suggested_status)
     int res = 0;
     int real_server = do_txt && 0; /* remove "&& 0" for using real server */
 
-    snprintf(path, sizeof(path), "/%d%s", suggested_status,
-             do_get > 1 ? "/will-be-redirected" : RPATH);
+    BIO_snprintf(path, sizeof(path), "/%d%s", suggested_status,
+                 do_get > 1 ? "/will-be-redirected" : RPATH);
     if (do_txt) {
         content_type = "text/plain";
         req = BIO_new(BIO_s_mem());

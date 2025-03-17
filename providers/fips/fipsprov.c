@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2019-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -500,6 +500,32 @@ static const OSSL_ALGORITHM fips_signature[] = {
     { PROV_NAMES_CMAC, FIPS_DEFAULT_PROPERTIES,
       ossl_mac_legacy_cmac_signature_functions },
 #endif
+#ifndef OPENSSL_NO_SLH_DSA
+    { PROV_NAMES_SLH_DSA_SHA2_128S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_128s_signature_functions, PROV_DESCS_SLH_DSA_SHA2_128S },
+    { PROV_NAMES_SLH_DSA_SHA2_128F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_128f_signature_functions, PROV_DESCS_SLH_DSA_SHA2_128F },
+    { PROV_NAMES_SLH_DSA_SHA2_192S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_192s_signature_functions, PROV_DESCS_SLH_DSA_SHA2_192S },
+    { PROV_NAMES_SLH_DSA_SHA2_192F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_192f_signature_functions, PROV_DESCS_SLH_DSA_SHA2_192F },
+    { PROV_NAMES_SLH_DSA_SHA2_256S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_256s_signature_functions, PROV_DESCS_SLH_DSA_SHA2_256S },
+    { PROV_NAMES_SLH_DSA_SHA2_256F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_256f_signature_functions, PROV_DESCS_SLH_DSA_SHA2_256F },
+    { PROV_NAMES_SLH_DSA_SHAKE_128S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_128s_signature_functions, PROV_DESCS_SLH_DSA_SHAKE_128S },
+    { PROV_NAMES_SLH_DSA_SHAKE_128F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_128f_signature_functions, PROV_DESCS_SLH_DSA_SHAKE_128F },
+    { PROV_NAMES_SLH_DSA_SHAKE_192S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_192s_signature_functions, PROV_DESCS_SLH_DSA_SHAKE_192S },
+    { PROV_NAMES_SLH_DSA_SHAKE_192F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_192f_signature_functions, PROV_DESCS_SLH_DSA_SHAKE_192F },
+    { PROV_NAMES_SLH_DSA_SHAKE_256S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_256s_signature_functions, PROV_DESCS_SLH_DSA_SHAKE_256S },
+    { PROV_NAMES_SLH_DSA_SHAKE_256F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_256f_signature_functions, PROV_DESCS_SLH_DSA_SHAKE_256F },
+#endif /* OPENSSL_NO_SLH_DSA */
     { NULL, NULL, NULL }
 };
 
@@ -593,6 +619,32 @@ static const OSSL_ALGORITHM fips_keymgmt[] = {
       PROV_DESCS_SecP384r1MLKEM1024 },
 # endif
 #endif
+#ifndef OPENSSL_NO_SLH_DSA
+    { PROV_NAMES_SLH_DSA_SHA2_128S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_128s_keymgmt_functions, PROV_DESCS_SLH_DSA_SHA2_128S },
+    { PROV_NAMES_SLH_DSA_SHA2_128F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_128f_keymgmt_functions, PROV_DESCS_SLH_DSA_SHA2_128F },
+    { PROV_NAMES_SLH_DSA_SHA2_192S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_192s_keymgmt_functions, PROV_DESCS_SLH_DSA_SHA2_192S },
+    { PROV_NAMES_SLH_DSA_SHA2_192F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_192f_keymgmt_functions, PROV_DESCS_SLH_DSA_SHA2_192F },
+    { PROV_NAMES_SLH_DSA_SHA2_256S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_256s_keymgmt_functions, PROV_DESCS_SLH_DSA_SHA2_256S },
+    { PROV_NAMES_SLH_DSA_SHA2_256F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_sha2_256f_keymgmt_functions, PROV_DESCS_SLH_DSA_SHA2_256F },
+    { PROV_NAMES_SLH_DSA_SHAKE_128S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_128s_keymgmt_functions, PROV_DESCS_SLH_DSA_SHAKE_128S },
+    { PROV_NAMES_SLH_DSA_SHAKE_128F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_128f_keymgmt_functions, PROV_DESCS_SLH_DSA_SHAKE_128F },
+    { PROV_NAMES_SLH_DSA_SHAKE_192S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_192s_keymgmt_functions, PROV_DESCS_SLH_DSA_SHAKE_192S },
+    { PROV_NAMES_SLH_DSA_SHAKE_192F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_192f_keymgmt_functions, PROV_DESCS_SLH_DSA_SHAKE_192F },
+    { PROV_NAMES_SLH_DSA_SHAKE_256S, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_256s_keymgmt_functions, PROV_DESCS_SLH_DSA_SHAKE_256S },
+    { PROV_NAMES_SLH_DSA_SHAKE_256F, FIPS_DEFAULT_PROPERTIES,
+      ossl_slh_dsa_shake_256f_keymgmt_functions, PROV_DESCS_SLH_DSA_SHAKE_256F },
+#endif /* OPENSSL_NO_SLH_DSA */
     { NULL, NULL, NULL }
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2025 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  * Copyright 2005 Nokia. All rights reserved.
  *
@@ -28,6 +28,7 @@
 #include <openssl/param_build.h>
 #include "internal/cryptlib.h"
 #include "internal/comp.h"
+#include "internal/ssl_unwrap.h"
 
 static MSG_PROCESS_RETURN tls_process_as_hello_retry_request(SSL_CONNECTION *s,
                                                              PACKET *pkt);
@@ -490,7 +491,7 @@ static WRITE_TRAN ossl_statem_client13_write_transition(SSL_CONNECTION *s)
         return WRITE_TRAN_CONTINUE;
 
     case TLS_ST_PENDING_EARLY_DATA_END:
-        if (s->ext.early_data == SSL_EARLY_DATA_ACCEPTED) {
+        if (s->ext.early_data == SSL_EARLY_DATA_ACCEPTED && !SSL_NO_EOED(s)) {
             st->hand_state = TLS_ST_CW_END_OF_EARLY_DATA;
             return WRITE_TRAN_CONTINUE;
         }
@@ -2140,8 +2141,12 @@ WORK_STATE tls_post_process_server_certificate(SSL_CONNECTION *s,
         }
     }
 
+    if (!X509_up_ref(x)) {
+        SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
+        return WORK_ERROR;
+    }
+
     X509_free(s->session->peer);
-    X509_up_ref(x);
     s->session->peer = x;
     s->session->verify_result = s->verify_result;
     /* Ensure there is no RPK */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2015-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -3159,7 +3159,9 @@ static int test_EVP_PKEY_check(int i)
 #ifndef OPENSSL_NO_DEPRECATED_3_0
     ctx2 = EVP_PKEY_CTX_new_id(0xdefaced, NULL);
     /* assign the pkey directly, as an internal test */
-    EVP_PKEY_up_ref(pkey);
+    if (!EVP_PKEY_up_ref(pkey))
+        goto done;
+
     ctx2->pkey = pkey;
 
     if (!TEST_int_eq(EVP_PKEY_check(ctx2), 0xbeef))

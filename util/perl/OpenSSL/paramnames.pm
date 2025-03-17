@@ -1,5 +1,5 @@
 #! /usr/bin/env perl
-# Copyright 2023-2024 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 2023-2025 The OpenSSL Project Authors. All Rights Reserved.
 #
 # Licensed under the Apache License 2.0 (the "License").  You may not use
 # this file except in compliance with the License.  You can obtain a copy
@@ -80,6 +80,7 @@ my %params = (
     'OBJECT_PARAM_REFERENCE' =>         "reference",# OCTET_STRING
     'OBJECT_PARAM_DATA' =>              "data",# OCTET_STRING or UTF8_STRING
     'OBJECT_PARAM_DESC' =>              "desc",     # UTF8_STRING
+    'OBJECT_PARAM_INPUT_TYPE' =>        "input-type", # UTF8_STRING
 
 # Algorithm parameters
 # If "engine",or "properties",are specified, they should always be paired
@@ -423,6 +424,7 @@ my %params = (
     'PKEY_PARAM_ML_KEM_RETAIN_SEED' => "ml-kem.retain_seed",
     'PKEY_PARAM_ML_KEM_INPUT_FORMATS' => "ml-kem.input_formats",
     'PKEY_PARAM_ML_KEM_OUTPUT_FORMATS' => "ml-kem.output_formats",
+    'PKEY_PARAM_ML_KEM_IMPORT_PCT_TYPE' => "ml-kem.import_pct_type",
 
 # Key generation parameters
     'PKEY_PARAM_FFC_TYPE' =>         "type",
@@ -444,6 +446,9 @@ my %params = (
     'PKEY_PARAM_ML_DSA_PREFER_SEED' =>      "ml-dsa.prefer_seed",
     'PKEY_PARAM_ML_DSA_INPUT_FORMATS' =>    "ml-dsa.input_formats",
     'PKEY_PARAM_ML_DSA_OUTPUT_FORMATS' =>   "ml-dsa.output_formats",
+
+# SLH_DSA Key generation parameters
+    'PKEY_PARAM_SLH_DSA_SEED' =>              "seed",
 
 # Key Exchange parameters
     'EXCHANGE_PARAM_PAD' =>                   "pad",# uint
@@ -484,6 +489,7 @@ my %params = (
     'SIGNATURE_PARAM_DETERMINISTIC' =>      "deterministic",
     'SIGNATURE_PARAM_MU' =>                 "mu", # int
     'SIGNATURE_PARAM_TEST_ENTROPY' =>       "test-entropy",
+    'SIGNATURE_PARAM_ADD_RANDOM' =>         "additional-random",
 
 # Asym cipher parameters
     'ASYM_CIPHER_PARAM_DIGEST' =>                   '*PKEY_PARAM_DIGEST',
@@ -567,6 +573,8 @@ my %params = (
     'CAPABILITY_TLS_SIGALG_SECURITY_BITS' =>     "tls-sigalg-sec-bits",
     'CAPABILITY_TLS_SIGALG_MIN_TLS' =>           "tls-min-tls",
     'CAPABILITY_TLS_SIGALG_MAX_TLS' =>           "tls-max-tls",
+    'CAPABILITY_TLS_SIGALG_MIN_DTLS' =>          "tls-min-dtls",
+    'CAPABILITY_TLS_SIGALG_MAX_DTLS' =>          "tls-max-dtls",
 
 # storemgmt parameters
 

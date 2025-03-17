@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2012-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -16,6 +16,7 @@
 #include <openssl/decoder.h>
 #include <openssl/core_dispatch.h>
 #include "internal/nelem.h"
+#include "internal/ssl_unwrap.h"
 
 /*
  * structure holding name tables. This is used for permitted elements in lists

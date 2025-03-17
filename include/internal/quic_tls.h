@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2022-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -108,4 +108,5 @@ int ossl_quic_tls_get_error(QUIC_TLS *qtls,
 int ossl_quic_tls_is_cert_request(QUIC_TLS *qtls);
 int ossl_quic_tls_has_bad_max_early_data(QUIC_TLS *qtls);
 
+int ossl_quic_tls_set_early_data_enabled(QUIC_TLS *qtls, int enabled);
 #endif

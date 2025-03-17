@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2006-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -37,13 +37,14 @@ static EVP_SIGNATURE *evp_signature_new(OSSL_PROVIDER *prov)
     if (signature == NULL)
         return NULL;
 
-    if (!CRYPTO_NEW_REF(&signature->refcnt, 1)) {
+    if (!CRYPTO_NEW_REF(&signature->refcnt, 1)
+        || !ossl_provider_up_ref(prov)) {
+        CRYPTO_FREE_REF(&signature->refcnt);
         OPENSSL_free(signature);
         return NULL;
     }
 
     signature->prov = prov;
-    ossl_provider_up_ref(prov);
 
     return signature;
 }

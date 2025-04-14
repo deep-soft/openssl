@@ -103,10 +103,7 @@ jobs:
           }, {
             arch: powerpc64le-linux-gnu,
             libs: libc6-dev-ppc64el-cross,
-            # The default compiler for this platform on Ubuntu 20.04 seems
-            # buggy and causes test failures. Dropping the optimisation level
-            # resolves it.
-            target: -O2 linux-ppc64le,
+            target: linux-ppc64le,
             fips: no
           }, {
             arch: riscv64-linux-gnu,
@@ -228,6 +225,7 @@ jobs:
                   TESTS="test_evp*" \
                   QEMU_LD_PREFIX=/usr/${{ matrix.platform.arch }}
     - name: save artifacts
+      if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
         name: "cross-compiles@${{ matrix.platform.arch }}"

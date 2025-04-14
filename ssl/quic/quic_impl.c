@@ -561,6 +561,15 @@ SSL *ossl_quic_new(SSL_CTX *ctx)
     QUIC_CONNECTION *qc = NULL;
     SSL_CONNECTION *sc = NULL;
 
+    /*
+     * QUIC_server_method should not be used with SSL_new.
+     * It should only be used with SSL_new_listener.
+     */
+    if (ctx->method == OSSL_QUIC_server_method()) {
+        QUIC_RAISE_NON_NORMAL_ERROR(NULL, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED, NULL);
+        return NULL;
+    }
+
     qc = OPENSSL_zalloc(sizeof(*qc));
     if (qc == NULL) {
         QUIC_RAISE_NON_NORMAL_ERROR(NULL, ERR_R_CRYPTO_LIB, NULL);
@@ -583,7 +592,7 @@ SSL *ossl_quic_new(SSL_CTX *ctx)
     }
 
     /* override the user_ssl of the inner connection */
-    sc->s3.flags |= TLS1_FLAGS_QUIC;
+    sc->s3.flags |= TLS1_FLAGS_QUIC | TLS1_FLAGS_QUIC_INTERNAL;
 
     /* Restrict options derived from the SSL_CTX. */
     sc->options &= OSSL_QUIC_PERMITTED_OPTIONS_CONN;
@@ -4436,7 +4445,7 @@ SSL *ossl_quic_new_from_listener(SSL *ssl, uint64_t flags)
         QUIC_RAISE_NON_NORMAL_ERROR(NULL, ERR_R_INTERNAL_ERROR, NULL);
         goto err;
     }
-    sc->s3.flags |= TLS1_FLAGS_QUIC;
+    sc->s3.flags |= TLS1_FLAGS_QUIC | TLS1_FLAGS_QUIC_INTERNAL;
 
     qc->default_ssl_options = OSSL_QUIC_PERMITTED_OPTIONS;
     qc->last_error = SSL_ERROR_NONE;
@@ -5097,6 +5106,8 @@ static int test_poll_event_w(QUIC_XSO *xso)
         && ossl_quic_stream_has_send_buffer(xso->stream)
         && ossl_quic_sstream_get_buffer_avail(xso->stream->sstream)
         && !ossl_quic_sstream_get_final_size(xso->stream->sstream, NULL)
+        && ossl_quic_txfc_get_cwm(&xso->stream->txfc)
+           > ossl_quic_sstream_get_cur_size(xso->stream->sstream)
         && quic_mutation_allowed(xso->conn, /*req_active=*/1);
 }
 

@@ -36,7 +36,7 @@ die "can't locate x86_64-xlate.pl";
 
 if (`$ENV{CC} -Wa,-v -c -o /dev/null -x assembler /dev/null 2>&1`
         =~ /GNU assembler version ([2-9]\.[0-9]+)/) {
-    $avx512vaes = ($1>=2.26);
+    $avx512vaes = ($1>=2.30);
 }
 
 if (!$avx512vaes && $win64 && ($flavour =~ /nasm/ || $ENV{ASM} =~ /nasm/) &&
@@ -2210,7 +2210,7 @@ ___
     vmovdqu8 	 0x40($input),%zmm2
     vmovdqu8 	 0x80($input),%zmm3
     vmovdqu8 	 0xc0($input),%zmm4
-    vmovdqu8 	 0xf0($input),%zmm5
+    vmovdqu8 	 0xf0($input),%xmm5
     add 	 \$0x100,$input
 ___
     }

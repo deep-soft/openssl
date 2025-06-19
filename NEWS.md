@@ -25,7 +25,16 @@ OpenSSL 3.5
 
 ### Major changes between OpenSSL 3.5 and OpenSSL 3.6 [under development]
 
-  * none
+This release incorporates the following potentially significant or incompatible
+changes:
+
+  * An ANSI-C toolchain is no longer sufficient for building OpenSSL. The code
+    should build on compilers supporting C-99 features.
+
+  * The VxWorks platforms have been removed.
+
+  * Added an `openssl configutl` utility for processing the openssl
+    configuration file and dumping the equal configuration file.
 
 ### Major changes between OpenSSL 3.4 and OpenSSL 3.5 [under development]
 
@@ -2069,7 +2078,7 @@ OpenSSL 0.9.x
 [CVE-2006-2940]: https://www.openssl.org/news/vulnerabilities.html#CVE-2006-2940
 [CVE-2006-2937]: https://www.openssl.org/news/vulnerabilities.html#CVE-2006-2937
 [CVE-2005-2969]: https://www.openssl.org/news/vulnerabilities.html#CVE-2005-2969
-[OpenSSL Guide]: https://www.openssl.org/docs/manmaster/man7/ossl-guide-introduction.html
+[OpenSSL Guide]: https://docs.openssl.org/master/man7/ossl-guide-introduction
 [CHANGES.md]: ./CHANGES.md
 [README-QUIC.md]: ./README-QUIC.md
 [issue tracker]: https://github.com/openssl/openssl/issues

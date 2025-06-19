@@ -32,7 +32,7 @@ provider-keymgmt - The KEYMGMT library E<lt>-E<gt> provider functions
  void OSSL_FUNC_keymgmt_gen_cleanup(void *genctx);
 
  /* Key loading by object reference, also a constructor */
- void *OSSL_FUNC_keymgmt_load(const void *reference, size_t *reference_sz);
+ void *OSSL_FUNC_keymgmt_load(const void *reference, size_t reference_sz);
 
  /* Key object information */
  int OSSL_FUNC_keymgmt_get_params(void *keydata, OSSL_PARAM params[]);
@@ -405,6 +405,12 @@ dimensions handled in the rest of the same provider.
 
 The value should be the number of security bits of the given key.
 Bits of security is defined in SP800-57.
+
+=item "security-category" (B<OSSL_PKEY_PARAM_SECURITY_CATEGORY>) <integer>
+
+The value is the NIST
+L<post-quantum security category|https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf>
+for the algorithm.  It is an integer value in the range [0, 5] inclusive.
 
 =item "mandatory-digest" (B<OSSL_PKEY_PARAM_MANDATORY_DIGEST>) <UTF8 string>
 

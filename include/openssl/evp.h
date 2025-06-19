@@ -376,6 +376,7 @@ OSSL_DEPRECATEDIN_3_0 int
 /* For supplementary wrap cipher support */
 # define         EVP_CIPH_FLAG_GET_WRAP_CIPHER   0x4000000
 # define         EVP_CIPH_FLAG_INVERSE_CIPHER    0x8000000
+# define         EVP_CIPH_FLAG_ENC_THEN_MAC      0x10000000
 
 /*
  * Cipher context flag to indicate we can handle wrap mode: if allowed in
@@ -1370,6 +1371,7 @@ int EVP_PKEY_get_bits(const EVP_PKEY *pkey);
 # define EVP_PKEY_bits EVP_PKEY_get_bits
 int EVP_PKEY_get_security_bits(const EVP_PKEY *pkey);
 # define EVP_PKEY_security_bits EVP_PKEY_get_security_bits
+int EVP_PKEY_get_security_category(const EVP_PKEY *pkey);
 int EVP_PKEY_get_size(const EVP_PKEY *pkey);
 # define EVP_PKEY_size EVP_PKEY_get_size
 int EVP_PKEY_can_sign(const EVP_PKEY *pkey);

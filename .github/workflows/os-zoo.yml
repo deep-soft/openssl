@@ -125,14 +125,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, windows-2022]
+        os: [windows-2022, windows-2025]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
     - name: checkout fuzz/corpora submodule
       run: git submodule update --init --depth 1 fuzz/corpora
     - uses: ilammy/msvc-dev-cmd@v1
-    - uses: ilammy/setup-nasm@v1
+    - name: install nasm
+      run: |
+        choco install nasm
+        "C:\Program Files\NASM" | Out-File -FilePath "$env:GITHUB_PATH" -Append
     - name: prepare the build directory
       run: mkdir _build
     - name: config
@@ -196,7 +199,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: config
-      run: ./config --strict-warnings -Wno-stringop-overflow enable-fips enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-trace
+      run: ./config --strict-warnings enable-fips enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-trace
     - name: config dump
       run: ./configdata.pm --dump
     - name: make
@@ -206,6 +209,23 @@ jobs:
         cat /proc/cpuinfo
         ./util/opensslwrap.sh version -c
     - name: make test
+      run: make test HARNESS_JOBS=${HARNESS_JOBS:-4}
+
+  linux-riscv64:
+    runs-on: linux-riscv64
+    steps:
+    - uses: actions/checkout@v4
+    - name: config
+      run: ./config enable-fips enable-ec_nistp_64_gcc_128 enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-trace
+    - name: config dump
+      run: ./configdata.pm --dump
+    - name: make
+      run: make -j8
+    - name: get cpu info
+      run: ./util/opensslwrap.sh version -c
+    - name: make test
+      env:
+        OPENSSL_riscvcap: ZBA_ZBB_ZBC_ZBS_ZKT
       run: make test HARNESS_JOBS=${HARNESS_JOBS:-4}
 
   freebsd-x86_64:

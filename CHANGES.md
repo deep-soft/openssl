@@ -31,6 +31,44 @@ OpenSSL 3.6
 
 ### Changes between 3.5 and 3.6 [xx XXX xxxx]
 
+ * Introduces use of `<stdbool.h>` when handling JSON encoding in
+   the OpenSSL codebase, replacing the previous use of `int` for
+   these boolean values.
+
+   *Alexis Goodfellow*
+
+ * An ANSI-C toolchain is no longer sufficient for building OpenSSL. The code
+   should build on compilers supporting C-99 features.
+
+   *Alexandr Nedvedicky*
+
+ * The VxWorks platforms have been removed. These platforms were unadopted,
+   unmaintained and reported to be non-functional.
+
+   *Anthony Ioppolo*
+
+ * Relax the path check in OpenSSL's 'file:' scheme implementation for
+   OSSL_STORE.  Previously, when the 'file:' scheme is an explicit part
+   of the URI, our implementation required an absolute path, such as
+   'file:/path/to/file.pem'.  This requirement is now relaxed, allowing
+   'file:path/to/file.pem', as well as 'file:file.pem'.
+
+   *Richard Levitte*
+
+ * Changed openssl-pkey(1) to match the documentation when private keys
+   are output in DER format (`-outform DER`) by producing the `PKCS#8` form by
+   default.  Previously this would output the *traditional* form for those
+   older key types (`DSA`, `RSA`, `ECDSA`) that had such a form.  The
+   `-traditional` flag has been extended to support explicit requests to output
+   that format in DER format (it was previously PEM-only).
+
+   *Viktor Dukhovni*
+
+ * Added an `openssl configutl` utility for processing the openssl
+   configuration file and dumping the equal configuration file.
+
+   *Dmitry Belyavskiy based on Clemens Lang's code*
+
  * Support setting a free function thunk to OPENSSL_sk stack types. Using a thunk
    allows the type specific free function to be called with the correct type
    information from generic functions like OPENSSL_sk_pop_free().
@@ -57,10 +95,33 @@ OpenSSL 3.6
 
    *Adrian Stanciu*
 
+ * Change default EC point formats configuration to support only 'uncompressed'
+   format, and add SSL_OP_LEGACY_EC_POINT_FORMATS flag and options to re-enable
+   previous default if required.
+
+   *Tim Perry*
+
+ * Increase PKCS12 default macsaltlen from 8 to 16, as per NIST SP
+   800-132 this improves interoperability for newly generated PKCS12
+   stores between FIPS and non-FIPS implementations.
+
+   *Dimitri John Ledkov*
+
 OpenSSL 3.5
 -----------
 
-### Changes between 3.4 and 3.5 [xx XXX xxxx]
+### Changes between 3.5.0 and 3.5.1 [xx XXX xxxx]
+
+ * Aligned the behaviour of TLS and DTLS in the event of a no_renegotiation
+   alert being received. Older versions of OpenSSL failed with DTLS if a
+   no_renegotiation alert was received. All versions of OpenSSL do this for TLS.
+   From 3.2 a bug was exposed that meant that DTLS ignored no_rengotiation. We
+   have now restored the original behaviour and brought DTLS back into line with
+   TLS.
+
+   *Matt Caswell*
+
+### Changes between 3.4 and 3.5.0 [8 Apr 2025]
 
  * Added server side support for QUIC
 
@@ -6617,6 +6678,11 @@ OpenSSL 1.1.0
    validated when establishing a connection.
 
    *Rob Percival <robpercival@google.com>*
+
+ * SSLv3 is by default disabled at build-time. Builds that are not
+   configured with "enable-ssl3" will not support SSLv3.
+
+   *Kurt Roeckx*
 
 OpenSSL 1.0.2
 -------------

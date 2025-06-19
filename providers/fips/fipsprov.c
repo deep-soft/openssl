@@ -17,6 +17,7 @@
 #include <openssl/proverr.h>
 #include <openssl/indicator.h>
 #include "internal/cryptlib.h"
+#include "internal/provider.h"
 #include "prov/implementations.h"
 #include "prov/names.h"
 #include "prov/provider_ctx.h"
@@ -354,6 +355,24 @@ static const OSSL_ALGORITHM_CAPABLE fips_ciphers[] = {
          ossl_cipher_capable_aes_cbc_hmac_sha256),
     ALGC(PROV_NAMES_AES_256_CBC_HMAC_SHA256, ossl_aes256cbc_hmac_sha256_functions,
          ossl_cipher_capable_aes_cbc_hmac_sha256),
+    ALGC(PROV_NAMES_AES_128_CBC_HMAC_SHA1_ETM, ossl_aes128cbc_hmac_sha1_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha1_etm),
+    ALGC(PROV_NAMES_AES_192_CBC_HMAC_SHA1_ETM, ossl_aes192cbc_hmac_sha1_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha1_etm),
+    ALGC(PROV_NAMES_AES_256_CBC_HMAC_SHA1_ETM, ossl_aes256cbc_hmac_sha1_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha1_etm),
+    ALGC(PROV_NAMES_AES_128_CBC_HMAC_SHA256_ETM, ossl_aes128cbc_hmac_sha256_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha256_etm),
+    ALGC(PROV_NAMES_AES_192_CBC_HMAC_SHA256_ETM, ossl_aes192cbc_hmac_sha256_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha256_etm),
+    ALGC(PROV_NAMES_AES_256_CBC_HMAC_SHA256_ETM, ossl_aes256cbc_hmac_sha256_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha256_etm),
+    ALGC(PROV_NAMES_AES_128_CBC_HMAC_SHA512_ETM, ossl_aes128cbc_hmac_sha512_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha512_etm),
+    ALGC(PROV_NAMES_AES_192_CBC_HMAC_SHA512_ETM, ossl_aes192cbc_hmac_sha512_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha512_etm),
+    ALGC(PROV_NAMES_AES_256_CBC_HMAC_SHA512_ETM, ossl_aes256cbc_hmac_sha512_etm_functions,
+         ossl_cipher_capable_aes_cbc_hmac_sha512_etm),
 #ifndef OPENSSL_NO_DES
     ALG(PROV_NAMES_DES_EDE3_ECB, ossl_tdes_ede3_ecb_functions),
     ALG(PROV_NAMES_DES_EDE3_CBC, ossl_tdes_ede3_cbc_functions),
@@ -884,6 +903,15 @@ int OSSL_provider_init_int(const OSSL_CORE_HANDLE *handle,
      * then memory leaks could otherwise occur.
      */
     if (!ossl_thread_register_fips(libctx))
+        goto err;
+
+    /*
+     * Ensure our internal provider is loaded. We use this whenever the FIPS
+     * provider internally uses the EVP API. We proactively load this now
+     * rather than waiting for lazy loading to ensure it is always present when
+     * we need it.
+     */
+    if (!ossl_provider_activate_fallbacks(libctx))
         goto err;
 
     /*

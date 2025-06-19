@@ -423,8 +423,8 @@ typedef int (*SSL_async_callback_fn)(SSL *s, void *arg);
 # define SSL_OP_NO_RX_CERTIFICATE_COMPRESSION            SSL_OP_BIT(33)
     /* Enable KTLS TX zerocopy on Linux */
 # define SSL_OP_ENABLE_KTLS_TX_ZEROCOPY_SENDFILE         SSL_OP_BIT(34)
-
-#define SSL_OP_PREFER_NO_DHE_KEX                         SSL_OP_BIT(35)
+# define SSL_OP_PREFER_NO_DHE_KEX                        SSL_OP_BIT(35)
+# define SSL_OP_LEGACY_EC_POINT_FORMATS                  SSL_OP_BIT(36)
 
 /*
  * Option "collections."
@@ -1831,8 +1831,8 @@ __owur int SSL_set_purpose(SSL *ssl, int purpose);
 __owur int SSL_CTX_set_trust(SSL_CTX *ctx, int trust);
 __owur int SSL_set_trust(SSL *ssl, int trust);
 
-__owur int SSL_set1_host(SSL *s, const char *hostname);
-__owur int SSL_add1_host(SSL *s, const char *hostname);
+__owur int SSL_set1_host(SSL *s, const char *host);
+__owur int SSL_add1_host(SSL *s, const char *host);
 __owur const char *SSL_get0_peername(SSL *s);
 void SSL_set_hostflags(SSL *s, unsigned int flags);
 

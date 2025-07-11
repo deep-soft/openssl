@@ -31,6 +31,16 @@ OpenSSL 3.6
 
 ### Changes between 3.5 and 3.6 [xx XXX xxxx]
 
+ * Introduce SSL_OP_SERVER_PREFERENCE superceding misleadingly
+   named SSL_OP_CIPHER_SERVER_PREFERENCE.
+
+   *Michael Baentsch*
+
+ * Added LMS signature verification support as per [SP 800-208].  This
+   support is present in both the FIPS and default providers.
+
+   *Shane Lontis and Paul Dale*
+
  * Introduces use of `<stdbool.h>` when handling JSON encoding in
    the OpenSSL codebase, replacing the previous use of `int` for
    these boolean values.
@@ -107,10 +117,32 @@ OpenSSL 3.6
 
    *Dimitri John Ledkov*
 
+ * Add X509_CRL_get0_tbs_sigalg() accessor for the signature AlgorithmIdentifier
+   inside a CRL's TBSCertList.
+
+   *Theo Buehler*
+
+ * HKDF with (SHA-256, SHA-384, SHA-512) has assigned OIDs. Added ability to load
+   HKDF configured with these explicit digests by name or OID.
+
+   *Daniel Van Geest (CryptoNext Security)*
+
 OpenSSL 3.5
 -----------
 
 ### Changes between 3.5.0 and 3.5.1 [xx XXX xxxx]
+
+ * Fix x509 application adds trusted use instead of rejected use.
+
+   Issue summary: Use of -addreject option with the openssl x509 application adds
+   a trusted use instead of a rejected use for a certificate.
+
+   Impact summary: If a user intends to make a trusted certificate rejected for
+   a particular use it will be instead marked as trusted for that use.
+
+   ([CVE-2025-4575])
+
+   *Tomas Mraz*
 
  * Aligned the behaviour of TLS and DTLS in the event of a no_renegotiation
    alert being received. Older versions of OpenSSL failed with DTLS if a
@@ -21297,6 +21329,7 @@ ndif
 
 <!-- Links -->
 
+[CVE-2025-4575]: https://www.openssl.org/news/vulnerabilities.html#CVE-2025-4575
 [CVE-2024-13176]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-13176
 [CVE-2024-9143]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-9143
 [CVE-2024-6119]: https://www.openssl.org/news/vulnerabilities.html#CVE-2024-6119
@@ -21494,3 +21527,4 @@ ndif
 [CVE-2002-0655]: https://www.openssl.org/news/vulnerabilities.html#CVE-2002-0655
 [CMVP]: https://csrc.nist.gov/projects/cryptographic-module-validation-program
 [ESV]: https://csrc.nist.gov/Projects/cryptographic-module-validation-program/entropy-validations
+[SP 800-208]: https://csrc.nist.gov/pubs/sp/800/208/final

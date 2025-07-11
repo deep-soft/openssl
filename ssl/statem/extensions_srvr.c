@@ -267,7 +267,7 @@ int tls_parse_ctos_session_ticket(SSL_CONNECTION *s, PACKET *pkt,
 {
     if (s->ext.session_ticket_cb &&
             !s->ext.session_ticket_cb(SSL_CONNECTION_GET_USER_SSL(s),
-                                      PACKET_data(pkt), PACKET_remaining(pkt),
+                                      PACKET_data(pkt), (int)PACKET_remaining(pkt),
                                       s->ext.session_ticket_cb_arg)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
         return 0;
@@ -816,7 +816,7 @@ static void check_overlap(SSL_CONNECTION *s,
         if (new_group_idx < group_idx) {
             group_idx = new_group_idx;
             *candidate_group_idx = current_group;
-            *prio_group_idx = group_idx;
+            *prio_group_idx = (int)group_idx;
             *selected_group = prio_groups[group_idx];
         }
     }
@@ -920,7 +920,7 @@ int tls_parse_ctos_key_share(SSL_CONNECTION *s, PACKET *pkt,
         int prio_group_idx = 0, candidate_group_idx = 0;
 
         /* Server or client preference ? */
-        if (s->options & SSL_OP_CIPHER_SERVER_PREFERENCE) {
+        if (s->options & SSL_OP_SERVER_PREFERENCE) {
             /* Server preference */
             /* Is there overlap with a key share group?  */
             check_overlap(s,

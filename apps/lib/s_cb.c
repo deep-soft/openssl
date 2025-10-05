@@ -106,6 +106,10 @@ int verify_callback(int ok, X509_STORE_CTX *ctx)
         if (!verify_args.quiet)
             policies_print(ctx);
         break;
+    case X509_V_ERR_OCSP_NO_RESPONSE:
+        if (!verify_args.quiet)
+            BIO_printf(bio_err, "no OCSP response(s) for certificate(s) found.\n");
+        break;
     }
     if (err == X509_V_OK && ok == 2 && !verify_args.quiet)
         policies_print(ctx);
@@ -387,7 +391,7 @@ int ssl_print_groups(BIO *out, SSL *s, int noshared)
     ngroups = SSL_get1_groups(s, NULL);
     if (ngroups <= 0)
         return 1;
-    groups = app_malloc(ngroups * sizeof(int), "groups to print");
+    groups = app_malloc_array(ngroups, sizeof(*groups), "groups to print");
     SSL_get1_groups(s, groups);
 
     BIO_puts(out, "Supported groups: ");
@@ -1547,12 +1551,9 @@ static int security_callback_debug(const SSL *s, const SSL_CTX *ctx,
                 if (pkey == NULL) {
                     BIO_printf(sdb->out, "Public key missing");
                 } else {
-                    const char *algname = "";
-
-                    EVP_PKEY_asn1_get0_info(NULL, NULL, NULL, NULL,
-                                            &algname, EVP_PKEY_get0_asn1(pkey));
                     BIO_printf(sdb->out, "%s, bits=%d",
-                            algname, EVP_PKEY_get_bits(pkey));
+                               EVP_PKEY_get0_type_name(pkey),
+                               EVP_PKEY_get_bits(pkey));
                 }
             }
             break;

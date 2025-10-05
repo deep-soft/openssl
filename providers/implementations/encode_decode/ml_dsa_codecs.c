@@ -15,7 +15,7 @@
 #include <openssl/core_names.h>
 #include "internal/encoder.h"
 #include "prov/ml_dsa.h"
-#include "ml_dsa_codecs.h"
+#include "prov/ml_dsa_codecs.h"
 
 /*-
  * Tables describing supported ASN.1 input/output formats.
@@ -126,7 +126,7 @@ ossl_ml_dsa_d2i_PUBKEY(const uint8_t *pk, int pk_len, int evp_type,
 
     if (!ossl_ml_dsa_pk_decode(ret, pk, (size_t) pk_len)) {
         ERR_raise_data(ERR_LIB_PROV, PROV_R_BAD_ENCODING,
-                       "errror parsing %s public key from input SPKI",
+                       "error parsing %s public key from input SPKI",
                        params->alg);
         ossl_ml_dsa_key_free(ret);
         return NULL;

@@ -1022,22 +1022,6 @@ DH *EVP_PKEY_get1_DH(EVP_PKEY *pkey)
 }
 # endif
 
-int EVP_PKEY_type(int type)
-{
-    int ret;
-    const EVP_PKEY_ASN1_METHOD *ameth;
-    ENGINE *e;
-    ameth = EVP_PKEY_asn1_find(&e, type);
-    if (ameth)
-        ret = ameth->pkey_id;
-    else
-        ret = NID_undef;
-# ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(e);
-# endif
-    return ret;
-}
-
 int EVP_PKEY_get_id(const EVP_PKEY *pkey)
 {
     return pkey->type;
@@ -1151,15 +1135,14 @@ int EVP_PKEY_can_sign(const EVP_PKEY *pkey)
     } else {
         const OSSL_PROVIDER *prov = EVP_KEYMGMT_get0_provider(pkey->keymgmt);
         OSSL_LIB_CTX *libctx = ossl_provider_libctx(prov);
-        const char *supported_sig =
-            pkey->keymgmt->query_operation_name != NULL
-            ? pkey->keymgmt->query_operation_name(OSSL_OP_SIGNATURE)
-            : EVP_KEYMGMT_get0_name(pkey->keymgmt);
-        EVP_SIGNATURE *signature = NULL;
+        EVP_SIGNATURE *sig;
+        const char *name;
 
-        signature = EVP_SIGNATURE_fetch(libctx, supported_sig, NULL);
-        if (signature != NULL) {
-            EVP_SIGNATURE_free(signature);
+        name = evp_keymgmt_util_query_operation_name(pkey->keymgmt,
+                                                     OSSL_OP_SIGNATURE);
+        sig = EVP_SIGNATURE_fetch(libctx, name, NULL);
+        if (sig != NULL) {
+            EVP_SIGNATURE_free(sig);
             return 1;
         }
     }
@@ -1558,7 +1541,7 @@ static int pkey_set_type(EVP_PKEY *pkey, ENGINE *e, int type, const char *str,
 {
 #ifndef FIPS_MODULE
     const EVP_PKEY_ASN1_METHOD *ameth = NULL;
-    ENGINE **eptr = (e == NULL) ? &e :  NULL;
+    ENGINE **eptr = (e == NULL) ? &e : NULL;
 #endif
 
     /*

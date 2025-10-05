@@ -302,7 +302,9 @@ static int do_sigver_init(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
         type = evp_get_digestbyname_ex(locpctx->libctx, mdname);
 
     if (ctx->pctx->pmeth == NULL) {
-        ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
+        ERR_raise_data(ERR_LIB_EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE,
+                       ver ? "%s digest_verify_init" : "%s digest_sign_init",
+                       EVP_PKEY_get0_type_name(locpctx->pkey));
         return 0;
     }
 
@@ -426,14 +428,20 @@ int EVP_DigestSignUpdate(EVP_MD_CTX *ctx, const void *data, size_t dsize)
         return 0;
     }
 
+    ERR_set_mark();
     ret = signature->digest_sign_update(pctx->op.sig.algctx, data, dsize);
-    if (ret <= 0)
+    if (ret <= 0 && ERR_count_to_mark() == 0)
         ERR_raise_data(ERR_LIB_EVP, EVP_R_PROVIDER_SIGNATURE_FAILURE,
                        "%s digest_sign_update:%s", signature->type_name, desc);
+    ERR_clear_last_mark();
     return ret;
 
  legacy:
     if (pctx != NULL) {
+        if (pctx->pmeth == NULL) {
+            ERR_raise(ERR_LIB_EVP, EVP_R_INITIALIZATION_ERROR);
+            return 0;
+        }
         /* do_sigver_init() checked that |digest_custom| is non-NULL */
         if (pctx->flag_call_digest_custom
             && !ctx->pctx->pmeth->digest_custom(ctx->pctx, ctx))
@@ -470,10 +478,12 @@ int EVP_DigestVerifyUpdate(EVP_MD_CTX *ctx, const void *data, size_t dsize)
         return 0;
     }
 
+    ERR_set_mark();
     ret = signature->digest_verify_update(pctx->op.sig.algctx, data, dsize);
-    if (ret <= 0)
+    if (ret <= 0 && ERR_count_to_mark() == 0)
         ERR_raise_data(ERR_LIB_EVP, EVP_R_PROVIDER_SIGNATURE_FAILURE,
                        "%s digest_verify_update:%s", signature->type_name, desc);
+    ERR_clear_last_mark();
     return ret;
 
  legacy:
@@ -523,11 +533,13 @@ int EVP_DigestSignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
             pctx = dctx;
     }
 
+    ERR_set_mark();
     r = signature->digest_sign_final(pctx->op.sig.algctx, sigret, siglen,
                                      sigret == NULL ? 0 : *siglen);
-    if (!r)
+    if (!r && ERR_count_to_mark() == 0)
         ERR_raise_data(ERR_LIB_EVP, EVP_R_PROVIDER_SIGNATURE_FAILURE,
                        "%s digest_sign_final:%s", signature->type_name, desc);
+    ERR_clear_last_mark();
     if (dctx == NULL && sigret != NULL)
         ctx->flags |= EVP_MD_CTX_FLAG_FINALISED;
     else
@@ -634,11 +646,13 @@ int EVP_DigestSign(EVP_MD_CTX *ctx, unsigned char *sigret, size_t *siglen,
 
             if (sigret != NULL)
                 ctx->flags |= EVP_MD_CTX_FLAG_FINALISED;
+            ERR_set_mark();
             ret = signature->digest_sign(pctx->op.sig.algctx, sigret, siglen,
                                          sigret == NULL ? 0 : *siglen, tbs, tbslen);
-            if (ret <= 0)
+            if (ret <= 0 && ERR_count_to_mark() == 0)
                 ERR_raise_data(ERR_LIB_EVP, EVP_R_PROVIDER_SIGNATURE_FAILURE,
                                "%s digest_sign:%s", signature->type_name, desc);
+            ERR_clear_last_mark();
             return ret;
         }
     } else {
@@ -689,10 +703,12 @@ int EVP_DigestVerifyFinal(EVP_MD_CTX *ctx, const unsigned char *sig,
             pctx = dctx;
     }
 
+    ERR_set_mark();
     r = signature->digest_verify_final(pctx->op.sig.algctx, sig, siglen);
-    if (!r)
+    if (!r && ERR_count_to_mark() == 0)
         ERR_raise_data(ERR_LIB_EVP, EVP_R_PROVIDER_SIGNATURE_FAILURE,
                        "%s digest_verify_final:%s", signature->type_name, desc);
+    ERR_clear_last_mark();
     if (dctx == NULL)
         ctx->flags |= EVP_MD_CTX_FLAG_FINALISED;
     else
@@ -765,10 +781,12 @@ int EVP_DigestVerify(EVP_MD_CTX *ctx, const unsigned char *sigret,
             int ret;
 
             ctx->flags |= EVP_MD_CTX_FLAG_FINALISED;
+            ERR_set_mark();
             ret = signature->digest_verify(pctx->op.sig.algctx, sigret, siglen, tbs, tbslen);
-            if (ret <= 0)
+            if (ret <= 0 && ERR_count_to_mark() == 0)
                 ERR_raise_data(ERR_LIB_EVP, EVP_R_PROVIDER_SIGNATURE_FAILURE,
                                "%s digest_verify:%s", signature->type_name, desc);
+            ERR_clear_last_mark();
             return ret;
         }
     } else {

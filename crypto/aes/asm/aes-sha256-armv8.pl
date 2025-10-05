@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# Copyright 2023 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 2023-2025 The OpenSSL Project Authors. All Rights Reserved.
 # Copyright (C) Cavium networks Ltd. 2016.
 #
 # Licensed under the Apache License 2.0 (the "License").  You may not use
@@ -32,7 +32,7 @@ open OUT,"| \"$^X\" $xlate $flavour \"$output\""
 $code=<<___;
 #include "arm_arch.h"
 
-# Theses are offsets into the CIPH_DIGEST struct
+/* These are offsets into the CIPH_DIGEST struct */
 #define CIPHER_KEY	0
 #define CIPHER_KEY_ROUNDS	8
 #define CIPHER_IV	16
@@ -149,67 +149,69 @@ ___
 }
 
 $code.=<<___;
-# Description:
-#
-# Combined Enc/Auth Primitive = aes128cbc/sha256_hmac
-#
-# Operations:
-#
-# out = encrypt-AES128CBC(in)
-# return_hash_ptr = SHA256(o_key_pad | SHA256(i_key_pad | out))
-#
-# Prototype:
-# void asm_aescbc_sha256_hmac(uint8_t *csrc, uint8_t *cdst, uint64_t clen,
-#			uint8_t *dsrc, uint8_t *ddst, uint64_t dlen,
-#			CIPH_DIGEST *arg)
-#
-# Registers used:
-#
-# asm_aescbc_sha256_hmac(
-#	csrc,	x0	(cipher src address)
-#	cdst,	x1	(cipher dst address)
-#	clen	x2	(cipher length)
-#	dsrc,	x3	(digest src address)
-#	ddst,	x4	(digest dst address)
-#	dlen,	x5	(digest length)
-#	arg	x6	:
-#		arg->cipher.key			(round keys)
-#		arg->cipher.key_rounds		(key rounds)
-#		arg->cipher.iv			(initialization vector)
-#		arg->digest.hmac.i_key_pad	(partially hashed i_key_pad)
-#		arg->digest.hmac.o_key_pad	(partially hashed o_key_pad)
-#	)
-#
-# Routine register definitions:
-#
-# v0  -- v3 -- aes results
-# v4  -- v7 -- round consts for sha
-# v8  -- v18 -- round keys
-# v19 -- v20 -- round keys
-# v21 -- ABCD tmp
-# v22 -- sha working state ABCD (q22)
-# v23 -- sha working state EFGH (q23)
-# v24 -- sha state ABCD
-# v25 -- sha state EFGH
-# v26 -- sha block 0
-# v27 -- sha block 1
-# v28 -- sha block 2
-# v29 -- sha block 3
-# v30 -- reserved
-# v31 -- reserved
-#
-# Constraints:
-#
-# The variable "clen" must be a multiple of 16, otherwise results
-# are not defined. For AES partial blocks the user is required
-# to pad the input to modulus 16 = 0.
-# The variable "dlen" must be a multiple of 8 and greater or equal
-# to "clen". This constrain is strictly related to the needs of the IPSec
-# ESP packet. Encrypted payload is hashed along with the 8 byte ESP header,
-# forming ICV. Speed gain is achieved by doing both things at the same time,
-# hence lengths are required to match at least at the cipher level.
-#
-# Short lengths are not optimized at < 12 AES blocks
+/*
+ * Description:
+ *
+ * Combined Enc/Auth Primitive = aes128cbc/sha256_hmac
+ *
+ * Operations:
+ *
+ * out = encrypt-AES128CBC(in)
+ * return_hash_ptr = SHA256(o_key_pad | SHA256(i_key_pad | out))
+ *
+ * Prototype:
+ * void asm_aescbc_sha256_hmac(uint8_t *csrc, uint8_t *cdst, uint64_t clen,
+ *			uint8_t *dsrc, uint8_t *ddst, uint64_t dlen,
+ *			CIPH_DIGEST *arg)
+ *
+ * Registers used:
+ *
+ * asm_aescbc_sha256_hmac(
+ *	csrc,	x0	(cipher src address)
+ *	cdst,	x1	(cipher dst address)
+ *	clen	x2	(cipher length)
+ *	dsrc,	x3	(digest src address)
+ *	ddst,	x4	(digest dst address)
+ *	dlen,	x5	(digest length)
+ *	arg	x6	:
+ *		arg->cipher.key			(round keys)
+ *		arg->cipher.key_rounds		(key rounds)
+ *		arg->cipher.iv			(initialization vector)
+ *		arg->digest.hmac.i_key_pad	(partially hashed i_key_pad)
+ *		arg->digest.hmac.o_key_pad	(partially hashed o_key_pad)
+ *	)
+ *
+ * Routine register definitions:
+ *
+ * v0  -- v3 -- aes results
+ * v4  -- v7 -- round consts for sha
+ * v8  -- v18 -- round keys
+ * v19 -- v20 -- round keys
+ * v21 -- ABCD tmp
+ * v22 -- sha working state ABCD (q22)
+ * v23 -- sha working state EFGH (q23)
+ * v24 -- sha state ABCD
+ * v25 -- sha state EFGH
+ * v26 -- sha block 0
+ * v27 -- sha block 1
+ * v28 -- sha block 2
+ * v29 -- sha block 3
+ * v30 -- reserved
+ * v31 -- reserved
+ *
+ * Constraints:
+ *
+ * The variable "clen" must be a multiple of 16, otherwise results
+ * are not defined. For AES partial blocks the user is required
+ * to pad the input to modulus 16 = 0.
+ * The variable "dlen" must be a multiple of 8 and greater or equal
+ * to "clen". This constrain is strictly related to the needs of the IPSec
+ * ESP packet. Encrypted payload is hashed along with the 8 byte ESP header,
+ * forming ICV. Speed gain is achieved by doing both things at the same time,
+ * hence lengths are required to match at least at the cipher level.
+ *
+ * Short lengths are not optimized at < 12 AES blocks
+ */
 
 .global	asm_aescbc_sha256_hmac
 .type	asm_aescbc_sha256_hmac,%function
@@ -425,7 +427,7 @@ $code.=<<___;
 
 	/* get outstanding bytes of the digest */
 	sub		x12,x5,x2
-	/* substract loaded bytes */
+	/* subtract loaded bytes */
 	sub		x5,x5,64
 
 	/*
@@ -2472,68 +2474,70 @@ $code.=<<___;
 
 .size	asm_aescbc_sha256_hmac, .-asm_aescbc_sha256_hmac
 
-# Description:
-#
-# Combined Auth/Dec Primitive = sha256_hmac/aes128cbc
-#
-# Operations:
-#
-# out = decrypt-AES128CBC(in)
-# return_ash_ptr = SHA256(o_key_pad | SHA256(i_key_pad | in))
-#
-# Prototype:
-#
-# void asm_sha256_hmac_aescbc_dec(uint8_t *csrc, uint8_t *cdst, uint64_t clen,
-#			uint8_t *dsrc, uint8_t *ddst, uint64_t dlen,
-#			CIPH_DIGEST *arg)
-#
-# Registers used:
-#
-# asm_sha256_hmac_aescbc_dec(
-#	csrc,	x0	(cipher src address)
-#	cdst,	x1	(cipher dst address)
-#	clen	x2	(cipher length)
-#	dsrc,	x3	(digest src address)
-#	ddst,	x4	(digest dst address)
-#	dlen,	x5	(digest length)
-#	arg	x6:
-#		arg->cipher.key			(round keys)
-#		arg->cipher.key_rounds		(key rounds)
-#		arg->cipher.iv			(initialization vector)
-#		arg->digest.hmac.i_key_pad	(partially hashed i_key_pad)
-#		arg->digest.hmac.o_key_pad	(partially hashed o_key_pad)
-#	)
-#
-# Routine register definitions:
-#
-# v0 - v3 -- aes results
-# v4 - v7 -- round consts for sha
-# v8 - v18 -- round keys
-# v19 - v20 -- round keys
-# v21 -- ABCD tmp
-# v22 -- sha working state ABCD (q22)
-# v23 -- sha working state EFGH (q23)
-# v24 -- sha state ABCD
-# v25 -- sha state EFGH
-# v26 -- sha block 0
-# v27 -- sha block 1
-# v28 -- sha block 2
-# v29 -- sha block 3
-# v30 -- reserved
-# v31 -- reserved
-#
-#
-# Constraints:
-#
-# The variable "clen" must be a multiple of 16, otherwise results are not
-# defined For AES partial blocks the user is required to pad the input to
-# modulus 16 = 0.
-#
-# The variable "dlen" must be a multiple of 8 and greater or equal to "clen".
-# The maximum difference between "dlen" and "clen" cannot exceed 64 bytes.
-# This constrain is strictly related to the needs of the IPSec ESP packet.
-# Short lengths are less optimized at < 16 AES blocks, however they are
-# somewhat optimized, and more so than the enc/auth versions.
+/*
+ * Description:
+ *
+ * Combined Auth/Dec Primitive = sha256_hmac/aes128cbc
+ *
+ * Operations:
+ *
+ * out = decrypt-AES128CBC(in)
+ * return_ash_ptr = SHA256(o_key_pad | SHA256(i_key_pad | in))
+ *
+ * Prototype:
+ *
+ * void asm_sha256_hmac_aescbc_dec(uint8_t *csrc, uint8_t *cdst, uint64_t clen,
+ *			uint8_t *dsrc, uint8_t *ddst, uint64_t dlen,
+ *			CIPH_DIGEST *arg)
+ *
+ * Registers used:
+ *
+ * asm_sha256_hmac_aescbc_dec(
+ *	csrc,	x0	(cipher src address)
+ *	cdst,	x1	(cipher dst address)
+ *	clen	x2	(cipher length)
+ *	dsrc,	x3	(digest src address)
+ *	ddst,	x4	(digest dst address)
+ *	dlen,	x5	(digest length)
+ *	arg	x6:
+ *		arg->cipher.key			(round keys)
+ *		arg->cipher.key_rounds		(key rounds)
+ *		arg->cipher.iv			(initialization vector)
+ *		arg->digest.hmac.i_key_pad	(partially hashed i_key_pad)
+ *		arg->digest.hmac.o_key_pad	(partially hashed o_key_pad)
+ *	)
+ *
+ * Routine register definitions:
+ *
+ * v0 - v3 -- aes results
+ * v4 - v7 -- round consts for sha
+ * v8 - v18 -- round keys
+ * v19 - v20 -- round keys
+ * v21 -- ABCD tmp
+ * v22 -- sha working state ABCD (q22)
+ * v23 -- sha working state EFGH (q23)
+ * v24 -- sha state ABCD
+ * v25 -- sha state EFGH
+ * v26 -- sha block 0
+ * v27 -- sha block 1
+ * v28 -- sha block 2
+ * v29 -- sha block 3
+ * v30 -- reserved
+ * v31 -- reserved
+ *
+ *
+ * Constraints:
+ *
+ * The variable "clen" must be a multiple of 16, otherwise results are not
+ * defined For AES partial blocks the user is required to pad the input to
+ * modulus 16 = 0.
+ *
+ * The variable "dlen" must be a multiple of 8 and greater or equal to "clen".
+ * The maximum difference between "dlen" and "clen" cannot exceed 64 bytes.
+ * This constrain is strictly related to the needs of the IPSec ESP packet.
+ * Short lengths are less optimized at < 16 AES blocks, however they are
+ * somewhat optimized, and more so than the enc/auth versions.
+ */
 
 .global	asm_sha256_hmac_aescbc_dec
 .type	asm_sha256_hmac_aescbc_dec,%function
@@ -2586,7 +2590,7 @@ asm_sha256_hmac_aescbc_dec:
 	rev32		v28.16b,v28.16b		/* endian swap w2 */
 	rev32		v29.16b,v29.16b		/* endian swap w3 */
 
-	/* substract loaded bytes */
+	/* subtract loaded bytes */
 	sub		x5,x5,64
 	/*
 	 * now we can do the loop prolog, 1st sha256 block
@@ -2742,7 +2746,7 @@ asm_sha256_hmac_aescbc_dec:
 	sha256h		q22, q23, v7.4s
 	sha256h2	q23, q21, v7.4s
 
-	/* substract loaded bytes */
+	/* subtract loaded bytes */
 	sub		x5,x5,64
 
 	/*
@@ -3013,7 +3017,7 @@ $code.=<<___;
 	add		v25.4s,v25.4s,v23.4s	/* EFGH += working copy */
 	/* save aes res, bump aes_out_ptr */
 	st1		{v3.16b},[x1],16
-	/* substract loaded bytes */
+	/* subtract loaded bytes */
 	sub		x5,x5,64
 	cbnz		x15,.Ldec_main_loop	/* loop if more to do */
 	/*

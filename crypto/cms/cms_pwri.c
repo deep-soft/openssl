@@ -138,7 +138,7 @@ CMS_RecipientInfo *CMS_add0_recipient_password(CMS_ContentInfo *cms,
         ERR_raise(ERR_LIB_CMS, ERR_R_ASN1_LIB);
         goto err;
     }
-    ri->type = CMS_RECIPINFO_PASS;
+    ri->encoded_type = ri->type = CMS_RECIPINFO_PASS;
 
     pwri = ri->d.pwri;
     pwri->cms_ctx = cms_ctx;
@@ -243,7 +243,7 @@ static int kek_unwrap_key(unsigned char *out, size_t *outlen,
         /* Check byte failure */
         goto err;
     }
-    if (inlen < (size_t)(tmp[0] - 4)) {
+    if (inlen < 4 + (size_t)tmp[0]) {
         /* Invalid length value */
         goto err;
     }

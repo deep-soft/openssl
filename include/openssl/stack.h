@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -45,9 +45,9 @@ OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
 int OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
 void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
 void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
-int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
-int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
-int OPENSSL_sk_find_all(OPENSSL_STACK *st, const void *data, int *pnum);
+int OPENSSL_sk_find(const OPENSSL_STACK *st, const void *data);
+int OPENSSL_sk_find_ex(const OPENSSL_STACK *st, const void *data);
+int OPENSSL_sk_find_all(const OPENSSL_STACK *st, const void *data, int *pnum);
 int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
 int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
 void *OPENSSL_sk_shift(OPENSSL_STACK *st);

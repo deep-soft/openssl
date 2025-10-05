@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -35,7 +35,7 @@ static int err_load_strings(const ERR_STRING_DATA *str);
 #endif
 
 #ifndef OPENSSL_NO_ERR
-static ERR_STRING_DATA ERR_str_libraries[] = {
+static const ERR_STRING_DATA ERR_str_libraries[] = {
     {ERR_PACK(ERR_LIB_NONE, 0, 0), "unknown library"},
     {ERR_PACK(ERR_LIB_SYS, 0, 0), "system library"},
     {ERR_PACK(ERR_LIB_BN, 0, 0), "bignum routines"},

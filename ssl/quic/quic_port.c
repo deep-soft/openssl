@@ -519,10 +519,10 @@ static QUIC_CHANNEL *port_make_channel(QUIC_PORT *port, SSL *tls, OSSL_QRX *qrx,
     args.is_tserver_ch = is_tserver;
 
     /*
-     * Creating a a new channel is made a bit tricky here as there is a
-     * bit of a circular dependency.  Initalizing a channel requires that
+     * Creating a new channel is made a bit tricky here as there is a
+     * bit of a circular dependency.  Initializing a channel requires that
      * the ch->tls and optionally the qlog_title be configured prior to
-     * initalization, but we need the channel at least partially configured
+     * initialization, but we need the channel at least partially configured
      * to create the new handshake layer, so we have to do this in a few steps.
      */
 
@@ -740,6 +740,9 @@ static void port_bind_channel(QUIC_PORT *port, const BIO_ADDR *peer,
     if (port->tserver_ch != NULL) {
         ch = port->tserver_ch;
         port->tserver_ch = NULL;
+        if (peer != NULL && BIO_ADDR_family(peer) != AF_UNSPEC)
+            ossl_quic_channel_set_peer_addr(ch, peer);
+
         ossl_quic_channel_bind_qrx(ch, qrx);
         ossl_qrx_set_msg_callback(ch->qrx, ch->msg_callback,
                                   ch->msg_callback_ssl);
@@ -1033,7 +1036,7 @@ err:
 /**
  * @brief Parses contents of a buffer into a validation token.
  *
- * VALIDATION_TOKEN should already be initalized. Does some basic sanity checks.
+ * VALIDATION_TOKEN should already be initialized. Does some basic sanity checks.
  *
  * @param token   Validation token to fill data in.
  * @param buf     Buffer of previously marshaled validation token.
@@ -1270,7 +1273,7 @@ static void port_send_version_negotiation(QUIC_PORT *port, BIO_ADDR *peer,
      * Add the array of supported versions to the end of the packet
      */
     for (i = 0; i < OSSL_NELEM(supported_versions); i++) {
-        if (!WPACKET_put_bytes_u32(&wpkt, htonl(supported_versions[i])))
+        if (!WPACKET_put_bytes_u32(&wpkt, supported_versions[i]))
             return;
     }
 
@@ -1291,7 +1294,7 @@ static void port_send_version_negotiation(QUIC_PORT *port, BIO_ADDR *peer,
 }
 
 /**
- * @brief defintions of token lifetimes
+ * @brief definitions of token lifetimes
  *
  * RETRY tokens are only valid for 10 seconds
  * NEW_TOKEN tokens have a lifetime of 3600 sec (1 hour)
@@ -1694,6 +1697,7 @@ static void port_default_packet_handler(QUIC_URXE *e, void *arg,
          */
         while (ossl_qrx_read_pkt(qrx_src, &qrx_pkt) == 1)
             ossl_quic_channel_inject_pkt(new_ch, qrx_pkt);
+        ossl_qrx_update_pn_space(qrx_src, new_ch->qrx);
     }
 
     /*

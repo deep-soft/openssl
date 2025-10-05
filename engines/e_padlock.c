@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2004-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -203,9 +203,9 @@ struct padlock_cipher_data {
             int rounds:4;
             int dgst:1;         /* n/a in C3 */
             int align:1;        /* n/a in C3 */
-            int ciphr:1;        /* n/a in C3 */
+            int cipher:1;        /* n/a in C3 */
             unsigned int keygen:1;
-            int interm:1;
+            int intern:1;
             unsigned int encdec:1;
             int ksize:2;
         } b;

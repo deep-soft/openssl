@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -146,7 +146,7 @@ const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_##mode(size_t keybits)           \
 # include "cipher_aes_hw_rv64i.inc"
 #elif defined(OPENSSL_CPUID_OBJ) && defined(__riscv) && __riscv_xlen == 32
 # include "cipher_aes_hw_rv32i.inc"
-#elif defined (ARMv8_HWAES_CAPABLE)
+#elif defined(ARMv8_HWAES_CAPABLE)
 # include "cipher_aes_hw_armv8.inc"
 #else
 /* The generic case */
@@ -157,7 +157,4 @@ const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_##mode(size_t keybits)           \
 PROV_CIPHER_HW_aes_mode(cbc)
 PROV_CIPHER_HW_aes_mode(ecb)
 PROV_CIPHER_HW_aes_mode(ofb128)
-PROV_CIPHER_HW_aes_mode(cfb128)
-PROV_CIPHER_HW_aes_mode(cfb1)
-PROV_CIPHER_HW_aes_mode(cfb8)
 PROV_CIPHER_HW_aes_mode(ctr)

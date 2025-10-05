@@ -1342,6 +1342,8 @@ DECLARE_PEM_rw(SSL_SESSION, SSL_SESSION)
 # define SSL_CTRL_GET0_IMPLEMENTED_GROUPS        139
 # define SSL_CTRL_GET_SIGNATURE_NAME             140
 # define SSL_CTRL_GET_PEER_SIGNATURE_NAME        141
+# define SSL_CTRL_GET_TLSEXT_STATUS_REQ_OCSP_RESP_EX        142
+# define SSL_CTRL_SET_TLSEXT_STATUS_REQ_OCSP_RESP_EX        143
 # define SSL_CERT_SET_FIRST                      1
 # define SSL_CERT_SET_NEXT                       2
 # define SSL_CERT_SET_SERVER                     3
@@ -2300,6 +2302,7 @@ size_t SSL_CTX_get_num_tickets(const SSL_CTX *ctx);
 /* QUIC support */
 int SSL_handle_events(SSL *s);
 __owur int SSL_get_event_timeout(SSL *s, struct timeval *tv, int *is_infinite);
+__owur int SSL_get_peer_addr(SSL *ssl, BIO_ADDR *peer_addr);
 __owur int SSL_get_rpoll_descriptor(SSL *s, BIO_POLL_DESCRIPTOR *desc);
 __owur int SSL_get_wpoll_descriptor(SSL *s, BIO_POLL_DESCRIPTOR *desc);
 __owur int SSL_net_read_desired(SSL *s);

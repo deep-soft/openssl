@@ -75,7 +75,7 @@
  * This is a simple non-blocking QUIC HTTP/1.0 server application.
  * Server accepts QUIC connections. It then accepts bi-directional
  * stream from client and reads request. By default it sends
- * 12345 bytes back as HHTTP/1.0 response to any GET request.
+ * 12345 bytes back as HTTP/1.0 response to any GET request.
  * If GET request comes with URL for example as follows:
  *     /foo/bar/file_65535.txt
  * then the server sends 64kB of data in HTTP/1.0 response.
@@ -216,7 +216,7 @@ struct poll_event_connection {
  * Members in poll manager deserve some explanation:
  *    - pm_head, holds a list of poll_event structures (connections and
  *      streams)
- *    - pm_event_count number of events to montior in SSL_poll(3ossl)
+ *    - pm_event_count number of events to monitor in SSL_poll(3ossl)
  *    - pm_poll_set array of events to poll on
  *    - pm_poll_set_sz number of slots (space) available in pm_poll_set
  *    - pm_need_rebuild whenever list of events to monitor in a list changes
@@ -975,7 +975,8 @@ create_poll_manager(void)
         return NULL;
 
     ossl_list_pe_init(&pm->pm_head);
-    pm->pm_poll_set = OPENSSL_malloc(sizeof (struct poll_event) * POLL_GROW);
+    pm->pm_poll_set = OPENSSL_malloc_array(POLL_GROW,
+                                           sizeof (struct poll_event));
     if (pm->pm_poll_set != NULL) {
         pm->pm_poll_set_sz = POLL_GROW;
         pm->pm_event_count = 0;
@@ -992,7 +993,6 @@ rebuild_poll_set(struct poll_manager *pm)
 {
     struct poll_event *new_poll_set;
     struct poll_event *pe;
-    size_t new_sz;
     size_t pe_num;
     size_t i;
 
@@ -1004,9 +1004,9 @@ rebuild_poll_set(struct poll_manager *pm)
         /*
          * grow poll set by POLL_GROW
          */
-        new_sz = sizeof (struct poll_event) * (pm->pm_poll_set_sz + POLL_GROW);
-        new_poll_set = (struct poll_event *)OPENSSL_realloc(pm->pm_poll_set,
-                                                            new_sz);
+        new_poll_set = OPENSSL_realloc_array(pm->pm_poll_set,
+                                             pm->pm_poll_set_sz + POLL_GROW,
+                                             sizeof (struct poll_event));
         if (new_poll_set == NULL)
             return -1;
         pm->pm_poll_set = new_poll_set;
@@ -1016,10 +1016,9 @@ rebuild_poll_set(struct poll_manager *pm)
         /*
          * shrink poll set by POLL_DOWNSIZ
          */
-        new_sz = sizeof (struct poll_event) *
-            (pm->pm_poll_set_sz - POLL_DOWNSIZ);
-        new_poll_set = (struct poll_event *)OPENSSL_realloc(pm->pm_poll_set,
-                                                            new_sz);
+        new_poll_set = OPENSSL_realloc_array(pm->pm_poll_set,
+                                             pm->pm_poll_set_sz - POLL_DOWNSIZ,
+                                             sizeof (struct poll_event));
         if (new_poll_set == NULL)
             return -1;
         pm->pm_poll_set = new_poll_set;

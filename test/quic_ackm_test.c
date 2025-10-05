@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2022-2025 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -104,14 +104,15 @@ static int helper_init(struct helper *h, size_t num_pkts)
 
     /* Initialise ACK manager. */
     h->ackm = ossl_ackm_new(fake_now, NULL, &h->statm,
-                            &ossl_cc_dummy_method, h->ccdata);
+                            &ossl_cc_dummy_method, h->ccdata,
+                            /* is_server */0);
     if (!TEST_ptr(h->ackm))
         goto err;
 
     /* Allocate our array of packet information. */
     h->num_pkts = num_pkts;
     if (num_pkts > 0) {
-        h->pkts = OPENSSL_zalloc(sizeof(struct pkt_info) * num_pkts);
+        h->pkts = OPENSSL_calloc(num_pkts, sizeof(struct pkt_info));
         if (!TEST_ptr(h->pkts))
             goto err;
     } else {
@@ -935,11 +936,11 @@ static int test_rx_ack_actual(int tidx, int space)
             num_tx += s->num_pn;
 
     /* Allocate packet information structures. */
-    txs = OPENSSL_zalloc(sizeof(*txs) * num_tx);
+    txs = OPENSSL_calloc(num_tx, sizeof(*txs));
     if (!TEST_ptr(txs))
         goto err;
 
-    pkts = OPENSSL_zalloc(sizeof(*pkts) * num_tx);
+    pkts = OPENSSL_calloc(num_tx, sizeof(*pkts));
     if (!TEST_ptr(pkts))
         goto err;
 

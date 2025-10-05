@@ -29,6 +29,7 @@
 #include "crypto/context.h"
 #include "fipscommon.h"
 #include "internal/core.h"
+#include "internal/mem_alloc_utils.h"
 
 static const char FIPS_DEFAULT_PROPERTIES[] = "provider=fips,fips=yes";
 static const char FIPS_UNAPPROVED_PROPERTIES[] = "provider=fips,fips=no";
@@ -65,6 +66,7 @@ static OSSL_FUNC_core_vset_error_fn *c_vset_error;
 static OSSL_FUNC_core_set_error_mark_fn *c_set_error_mark;
 static OSSL_FUNC_core_clear_last_error_mark_fn *c_clear_last_error_mark;
 static OSSL_FUNC_core_pop_error_to_mark_fn *c_pop_error_to_mark;
+static OSSL_FUNC_core_count_to_mark_fn *c_count_to_mark;
 static OSSL_FUNC_CRYPTO_malloc_fn *c_CRYPTO_malloc;
 static OSSL_FUNC_CRYPTO_zalloc_fn *c_CRYPTO_zalloc;
 static OSSL_FUNC_CRYPTO_free_fn *c_CRYPTO_free;
@@ -408,23 +410,33 @@ static const OSSL_ALGORITHM fips_macs_internal[] = {
     { NULL, NULL, NULL }
 };
 
+#define FIPS_KDFS_COMMON()                                                               \
+    { PROV_NAMES_HKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_functions },               \
+    { PROV_NAMES_HKDF_SHA256, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_sha256_functions }, \
+    { PROV_NAMES_HKDF_SHA384, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_sha384_functions }, \
+    { PROV_NAMES_HKDF_SHA512, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_sha512_functions }, \
+    { PROV_NAMES_TLS1_3_KDF, FIPS_DEFAULT_PROPERTIES,                                    \
+      ossl_kdf_tls1_3_kdf_functions },                                                   \
+    { PROV_NAMES_SSKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_sskdf_functions },             \
+    { PROV_NAMES_PBKDF2, FIPS_DEFAULT_PROPERTIES, ossl_kdf_pbkdf2_functions },           \
+    { PROV_NAMES_SSHKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_sshkdf_functions },           \
+    { PROV_NAMES_X963KDF, FIPS_DEFAULT_PROPERTIES,                                       \
+      ossl_kdf_x963_kdf_functions },                                                     \
+    { PROV_NAMES_X942KDF_ASN1, FIPS_DEFAULT_PROPERTIES,                                  \
+      ossl_kdf_x942_kdf_functions },                                                     \
+    { PROV_NAMES_TLS1_PRF, FIPS_DEFAULT_PROPERTIES,                                      \
+      ossl_kdf_tls1_prf_functions },                                                     \
+    { PROV_NAMES_KBKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_kbkdf_functions }
+
 static const OSSL_ALGORITHM fips_kdfs[] = {
-    { PROV_NAMES_HKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_functions },
-    { PROV_NAMES_HKDF_SHA256, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_sha256_functions },
-    { PROV_NAMES_HKDF_SHA384, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_sha384_functions },
-    { PROV_NAMES_HKDF_SHA512, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hkdf_sha512_functions },
-    { PROV_NAMES_TLS1_3_KDF, FIPS_DEFAULT_PROPERTIES,
-      ossl_kdf_tls1_3_kdf_functions },
-    { PROV_NAMES_SSKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_sskdf_functions },
-    { PROV_NAMES_PBKDF2, FIPS_DEFAULT_PROPERTIES, ossl_kdf_pbkdf2_functions },
-    { PROV_NAMES_SSHKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_sshkdf_functions },
-    { PROV_NAMES_X963KDF, FIPS_DEFAULT_PROPERTIES,
-      ossl_kdf_x963_kdf_functions },
-    { PROV_NAMES_X942KDF_ASN1, FIPS_DEFAULT_PROPERTIES,
-      ossl_kdf_x942_kdf_functions },
-    { PROV_NAMES_TLS1_PRF, FIPS_DEFAULT_PROPERTIES,
-      ossl_kdf_tls1_prf_functions },
-    { PROV_NAMES_KBKDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_kbkdf_functions },
+    FIPS_KDFS_COMMON(),
+    { NULL, NULL, NULL }
+};
+
+static const OSSL_ALGORITHM fips_kdfs_internal[] = {
+    FIPS_KDFS_COMMON(),
+    /* For deterministic ECDSA */
+    { PROV_NAMES_HMAC_DRBG_KDF, FIPS_DEFAULT_PROPERTIES, ossl_kdf_hmac_drbg_functions },
     { NULL, NULL, NULL }
 };
 
@@ -683,6 +695,14 @@ static const OSSL_ALGORITHM fips_keymgmt[] = {
     { NULL, NULL, NULL }
 };
 
+static const OSSL_ALGORITHM fips_skeymgmt[] = {
+    { PROV_NAMES_AES, FIPS_DEFAULT_PROPERTIES, ossl_aes_skeymgmt_functions,
+      PROV_DESCS_AES },
+    { PROV_NAMES_GENERIC, FIPS_DEFAULT_PROPERTIES, ossl_generic_skeymgmt_functions,
+      PROV_DESCS_GENERIC },
+    { NULL, NULL, NULL }
+};
+
 static const OSSL_ALGORITHM *fips_query(void *provctx, int operation_id,
                                         int *no_cache)
 {
@@ -712,6 +732,8 @@ static const OSSL_ALGORITHM *fips_query(void *provctx, int operation_id,
         return fips_asym_cipher;
     case OSSL_OP_KEM:
         return fips_asym_kem;
+    case OSSL_OP_SKEYMGMT:
+        return fips_skeymgmt;
     }
     return NULL;
 }
@@ -719,15 +741,20 @@ static const OSSL_ALGORITHM *fips_query(void *provctx, int operation_id,
 static const OSSL_ALGORITHM *fips_query_internal(void *provctx, int operation_id,
                                                  int *no_cache)
 {
-    int is_digest_op = (operation_id == OSSL_OP_DIGEST);
+    *no_cache = 0;
 
-    if (is_digest_op
-            || operation_id == OSSL_OP_MAC) {
-        *no_cache = 0;
-        if (!ossl_prov_is_running())
-            return NULL;
-        return is_digest_op ? fips_digests_internal : fips_macs_internal;
+    if (!ossl_prov_is_running())
+        return NULL;
+
+    switch (operation_id) {
+    case OSSL_OP_DIGEST:
+        return fips_digests_internal;
+    case OSSL_OP_MAC:
+        return fips_macs_internal;
+    case OSSL_OP_KDF:
+        return fips_kdfs_internal;
     }
+
     return fips_query(provctx, operation_id, no_cache);
 }
 
@@ -833,6 +860,9 @@ int OSSL_provider_init_int(const OSSL_CORE_HANDLE *handle,
             break;
         case OSSL_FUNC_CORE_POP_ERROR_TO_MARK:
             set_func(c_pop_error_to_mark, OSSL_FUNC_core_pop_error_to_mark(in));
+            break;
+        case OSSL_FUNC_CORE_COUNT_TO_MARK:
+            set_func(c_count_to_mark, OSSL_FUNC_core_count_to_mark(in));
             break;
         case OSSL_FUNC_CRYPTO_MALLOC:
             set_func(c_CRYPTO_malloc, OSSL_FUNC_CRYPTO_malloc(in));
@@ -1072,6 +1102,11 @@ int ERR_pop_to_mark(void)
     return c_pop_error_to_mark(NULL);
 }
 
+int ERR_count_to_mark(void)
+{
+    return c_count_to_mark != NULL ? c_count_to_mark(NULL) : 0;
+}
+
 /*
  * This must take a library context, since it's called from the depths
  * of crypto/initthread.c code, where it's (correctly) assumed that the
@@ -1149,7 +1184,7 @@ int CRYPTO_secure_allocated(const void *ptr)
 void *CRYPTO_aligned_alloc(size_t num, size_t align, void **freeptr,
                            const char *file, int line)
 {
-    return NULL;
+    return ossl_malloc_align(num, align, freeptr, file, line);
 }
 
 int BIO_snprintf(char *buf, size_t n, const char *format, ...)

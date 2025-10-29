@@ -6,7 +6,7 @@
 # https://www.openssl.org/source/license.html
 
 name: act-Windows
-# 2024-09-13 16:15
+# 2025-10-29 07:00
 # 0-windows-min-plain-shared.yml
 #
 
@@ -66,7 +66,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - windows-2019
+          # - windows-2019
           - windows-2022
         platform:
           - arch: win64
@@ -256,7 +256,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - windows-2019
+          # - windows-2019
           - windows-2022
         platform:
           - arch: win64
@@ -432,7 +432,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - windows-2019
+          # - windows-2019
           - windows-2022
         platform:
           - arch: win64
@@ -602,3 +602,4 @@ jobs:
           ${{ env.ZIP_RELEASE_ARCHIVE }}
           _tag_name_.txt
 # zip release end
+

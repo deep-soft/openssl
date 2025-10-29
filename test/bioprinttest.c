@@ -541,7 +541,7 @@ static int test_n(int i)
         ptrdiff_t t;
     } n = { 0 };
 
-#if defined(OPENSSL_SYS_WINDOWS)
+#if defined(OPENSSL_SYS_WINDOWS) && !defined(__MINGW32__)
     /*
      * MS CRT is special and throws an exception when %n is used even
      * in non-*_s versions of printf routines, and there is a special function
@@ -551,6 +551,7 @@ static int test_n(int i)
     if (_get_printf_count_output() == 0) {
         TEST_note("Can't enable %%n handling for snprintf"
                   ", skipping the checks against libc");
+        return 1;
     }
 #elif defined(__OpenBSD__)
     {

@@ -1405,7 +1405,7 @@ CON_FUNC_RETURN dtls_construct_hello_verify_request(SSL_CONNECTION *s,
     if (sctx->app_gen_cookie_cb == NULL
         || sctx->app_gen_cookie_cb(SSL_CONNECTION_GET_USER_SSL(s), s->d1->cookie,
                                    &cookie_leni) == 0
-        || cookie_leni > DTLS1_COOKIE_LENGTH) {
+        || cookie_leni > sizeof(s->d1->cookie)) {
         SSLfatal(s, SSL_AD_NO_ALERT, SSL_R_COOKIE_GEN_CALLBACK_FAILURE);
         return CON_FUNC_ERROR;
     }
@@ -1633,7 +1633,7 @@ MSG_PROCESS_RETURN tls_process_client_hello(SSL_CONNECTION *s, PACKET *pkt)
                 goto err;
             }
             if (!PACKET_copy_all(&cookie, clienthello->dtls_cookie,
-                                 DTLS1_COOKIE_LENGTH,
+                                 sizeof(clienthello->dtls_cookie),
                                  &clienthello->dtls_cookie_len)) {
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
                 goto err;
@@ -4202,7 +4202,9 @@ CON_FUNC_RETURN tls_construct_new_session_ticket(SSL_CONNECTION *s, WPACKET *pkt
     if (SSL_CONNECTION_IS_TLS13(s)) {
         size_t i, hashlen;
         uint64_t nonce;
-        static const unsigned char nonce_label[] = "resumption";
+        /* ASCII: "resumption", in hex for EBCDIC compatibility */
+        static const unsigned char nonce_label[] = { 0x72, 0x65, 0x73, 0x75, 0x6D,
+                                                     0x70, 0x74, 0x69, 0x6F, 0x6E };
         const EVP_MD *md = ssl_handshake_md(s);
         int hashleni = EVP_MD_get_size(md);
 
@@ -4249,7 +4251,7 @@ CON_FUNC_RETURN tls_construct_new_session_ticket(SSL_CONNECTION *s, WPACKET *pkt
 
         if (!tls13_hkdf_expand(s, md, s->resumption_master_secret,
                                nonce_label,
-                               sizeof(nonce_label) - 1,
+                               sizeof(nonce_label),
                                tick_nonce,
                                TICKET_NONCE_SIZE,
                                s->session->master_key,

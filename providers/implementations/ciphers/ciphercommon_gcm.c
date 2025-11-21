@@ -26,6 +26,7 @@ static int gcm_tls_cipher(PROV_GCM_CTX *ctx, unsigned char *out, size_t *padlen,
 static int gcm_cipher_internal(PROV_GCM_CTX *ctx, unsigned char *out,
                                size_t *padlen, const unsigned char *in,
                                size_t len);
+static int on_preupdate_generate_iv(PROV_GCM_CTX *ctx);
 
 /*
  * Called from EVP_CipherInit when there is currently no context via
@@ -63,6 +64,7 @@ static int gcm_init(void *vctx, const unsigned char *key, size_t keylen,
             ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_IV_LENGTH);
             return 0;
         }
+        ctx->iv_gen_rand = 0;
         ctx->ivlen = ivlen;
         memcpy(ctx->iv, iv, ivlen);
         ctx->iv_state = IV_STATE_BUFFERED;
@@ -178,10 +180,14 @@ int ossl_gcm_get_ctx_params(void *vctx, OSSL_PARAM params[])
         }
     }
 
+    /*
+     * Note p.updiv and p.iv are aliases that get the same information,
+     * so any code changes should be duplicated below.
+     */
     if (p.iv != NULL) {
-        if (ctx->iv_state == IV_STATE_UNINITIALISED)
+        if (!on_preupdate_generate_iv(ctx))
             return 0;
-        if (ctx->ivlen > p.iv->data_size) {
+        if (p.iv->data != NULL && ctx->ivlen > p.iv->data_size) {
             ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_IV_LENGTH);
             return 0;
         }
@@ -190,11 +196,10 @@ int ossl_gcm_get_ctx_params(void *vctx, OSSL_PARAM params[])
             return 0;
         }
     }
-
     if (p.updiv != NULL) {
-        if (ctx->iv_state == IV_STATE_UNINITIALISED)
+        if (!on_preupdate_generate_iv(ctx))
             return 0;
-        if (ctx->ivlen > p.updiv->data_size) {
+        if (p.updiv->data != NULL && ctx->ivlen > p.updiv->data_size) {
             ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_IV_LENGTH);
             return 0;
         }
@@ -211,13 +216,15 @@ int ossl_gcm_get_ctx_params(void *vctx, OSSL_PARAM params[])
 
     if (p.tag != NULL) {
         sz = p.tag->data_size;
-        if (sz == 0
-            || sz > EVP_GCM_TLS_TAG_LEN
-            || !ctx->enc
-            || ctx->taglen == UNINITIALISED_SIZET) {
+        if (!ctx->enc || ctx->taglen == UNINITIALISED_SIZET) {
             ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_TAG);
             return 0;
         }
+        if (p.tag->data != NULL && (sz > EVP_GCM_TLS_TAG_LEN || sz == 0)) {
+            ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_TAG);
+            return 0;
+        }
+
         if (!OSSL_PARAM_set_octet_string(p.tag, ctx->buf, sz)) {
             ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_TO_SET_PARAMETER);
             return 0;
@@ -397,6 +404,21 @@ static int gcm_iv_generate(PROV_GCM_CTX *ctx, int offset)
         return 0;
     ctx->iv_state = IV_STATE_BUFFERED;
     ctx->iv_gen_rand = 1;
+    return 1;
+}
+
+/*
+ * If we try to grab the iv before the update - it wont be generated yet,
+ * so we generate it here for this case.
+ */
+static int on_preupdate_generate_iv(PROV_GCM_CTX *ctx)
+{
+    if (ctx->iv_state == IV_STATE_UNINITIALISED) {
+        if (ctx->tls_aad_len != UNINITIALISED_SIZET)
+            return 0;
+        if (!ctx->enc || !gcm_iv_generate(ctx, 0))
+            return 0;
+    }
     return 1;
 }
 

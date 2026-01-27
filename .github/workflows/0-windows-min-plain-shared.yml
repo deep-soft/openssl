@@ -65,18 +65,24 @@ jobs:
     # Run a job for each of the specified target architectures:
     strategy:
       matrix:
-        os:
-          # - windows-2019
-          - windows-2022
         platform:
-          - arch: win64
-            config: enable-fips
-          - arch: win32
-            config: --strict-warnings no-fips
-        job_type:
-          - type: shared
-    runs-on: ${{ matrix.os }}
-    name:  ${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}
+          - arch: amd64
+            os: windows-2022
+            config: enable-lms enable-fips
+            vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat
+            type: shared
+          - arch: amd64
+            os: windows-2025
+            config: enable-lms enable-fips no-thread-pool no-quic
+            vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat
+            type: shared
+          - arch: x86
+            os: windows-2022
+            config: no-fips enable-lms
+            vcvars: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat
+            type: shared
+    runs-on: ${{ matrix.platform.os }}
+    name:  ${{ matrix.platform.os }}-${{ matrix.platform.type }}-${{ matrix.platform.arch }}
     steps:
     - name: Checkout
       uses: deep-soft/checkout@v4
@@ -154,8 +160,10 @@ jobs:
 
     - name: Config
       working-directory: _build
+      # perl ..\Configure --banner=Configured no-makedepend ${{ matrix.platform.config }}
       run: |
-        perl ..\Configure --banner=Configured no-makedepend ${{ matrix.platform.config }}
+        call "${{ matrix.platform.vcvars }}"
+        perl ..\Configure --banner=Configured --strict-warnings no-makedepend -DOSSL_WINCTX=openssl ${{ matrix.platform.config }}
         perl configdata.pm --dump
 
     - name: Build
@@ -180,7 +188,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.platform.os }}-${{ matrix.platform.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}.zip'
         directory: '${{ env.INSTALL_DIR }}'
         exclusions: '*.map *.pdb'
         recursive_exclusions: '*.map *.pdb'
@@ -224,6 +232,7 @@ jobs:
       continue-on-error: true
       working-directory: _build
       run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
 
 # zip All begin
@@ -233,7 +242,7 @@ jobs:
       uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
-        filename: '${{ env.TAG_VERSION }}-${{ matrix.os }}-${{ matrix.job_type.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
+        filename: '${{ env.TAG_VERSION }}-${{ matrix.platform.os }}-${{ matrix.platform.type }}-${{ matrix.platform.arch }}${{ env.TAG_BUILD }}-ALL.zip'
         directory: '.'
         #exclusions: '*.map *.pdb'
         #recursive_exclusions: '*.map *.pdb'
@@ -336,14 +345,17 @@ jobs:
     - name: Config
       continue-on-error: true
       working-directory: _build
+      # perl ..\Configure --banner=Configured no-makedepend no-shared no-fips enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-trace enable-crypto-mdebug VC-WIN64A-masm
       run: |
-        perl ..\Configure --banner=Configured no-makedepend no-shared no-fips enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers enable-trace enable-crypto-mdebug VC-WIN64A-masm
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        perl ..\Configure --banner=Configured --strict-warnings enable-demos no-makedepend no-shared no-fips enable-md2 enable-rc5 enable-weak-ssl-ciphers enable-trace enable-crypto-mdebug -DOSSL_WINCTX=openssl VC-WIN64A-masm
         perl configdata.pm --dump
 
     - name: Build
       continue-on-error: true
       working-directory: _build
       run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         nmake /S
 
     - name: Install
@@ -400,6 +412,7 @@ jobs:
       continue-on-error: true
       working-directory: _build
       run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         nmake test VERBOSE_FAILURE=yes HARNESS_JOBS=4
 
 # zip All begin
@@ -512,8 +525,10 @@ jobs:
     - name: Config
       continue-on-error: true
       working-directory: _build
+      # perl ..\Configure --banner=Configured no-makedepend no-bulk no-deprecated no-fips no-asm no-threads -DOPENSSL_SMALL_FOOTPRINT
       run: |
-        perl ..\Configure --banner=Configured no-makedepend no-bulk no-deprecated no-fips no-asm no-threads -DOPENSSL_SMALL_FOOTPRINT
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        perl ..\Configure --banner=Configured --strict-warnings enable-demos no-makedepend no-bulk no-deprecated no-fips no-asm no-threads -DOPENSSL_SMALL_FOOTPRINT -DOSSL_WINCTX=openssl
         perl configdata.pm --dump
 
     - name: Build
@@ -576,6 +591,7 @@ jobs:
       continue-on-error: true
       working-directory: _build
       run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         nmake test VERBOSE_FAILURE=yes TESTS=-test_fuzz* HARNESS_JOBS=4
 
 # zip All begin
@@ -602,4 +618,5 @@ jobs:
           ${{ env.ZIP_RELEASE_ARCHIVE }}
           _tag_name_.txt
 # zip release end
+
 

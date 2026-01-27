@@ -32,25 +32,152 @@ OpenSSL 4.0
 
 ### Changes between 3.6 and 4.0 [xx XXX xxxx]
 
+ * Added CSHAKE as per [SP 800-185]
+
+   *Shane Lontis*
+
+ * Added configure options to disable KDF algorithms for
+   hmac-drbg-kdf, kbkdf, krb5kdf, pvkkdf, snmpkdf, sskdf, sshkdf, x942kdf and x963kdf.
+
+   *Shane Lontis*
+
+ * Support of deprecated elliptic curves in TLS according to RFC 8422 was
+   disabled at compile-time by default. To enable it, use the
+   `enable-tls-deprecated-ec` compilation option.
+
+   *Dmitry Belyavskiy*
+
+ * Remove support for an SSLv2 Client Hello. When a client wanted to support
+   both SSLv2 and higher versions like SSLv3 or even TLSv1, it needed to
+   send an SSLv2 Client Hello. SSLv2 support itself was removed in version
+   1.1.0, but there was still compatibility code for clients sending an SSLv2
+   Client Hello. Since we no longer support SSLv2 Client Hello,
+   SSL_client_hello_isv2() is now deprecated and always returns 0.
+
+   *Kurt Roeckx*
+
+ * Added "ML-DSA-MU" digest algorithm support.
+
+   *Shane Lontis*
+
+ * Support of explicit EC curves was disabled by default, an error will occur if
+   an explicit EC curve doesn't match any known one. New configuration option,
+   `enable-ec_explicit_curves` is added.
+
+   *Dmitry Belyavskiy*
+
+ * Removed configure options can now only be disabled. You may continue to use
+   `disable-<feature>`, which will remain supported. Using `enable-<feature>`
+   for a removed feature is no longer permitted.
+
+   *Andrew Dinh*
+
+ * Support for SSLv3 was removed. SSLv3 has been deprecated since
+   2015, and OpenSSL had it disabled by default since 1.1.0 (2016).
+
+   *Kurt Roeckx*
+
+ * The script tool `c_rehash` was removed. Use `openssl rehash` instead.
+
+   *Norbert Pocs*
+
+ * libcrypto no longer cleans up globally allocated data on process exit. This data
+   is cleaned up automatically by the OS instead. Some memory leak detectors
+   may report spurious allocated and reachable memory at application exit. To
+   avoid such spurious leak detection reports the application may call
+   OPENSSL_cleanup() before the process exits.
+
+   *Alexandr Nedvedicky*
+
+ * The crypto-mdebug-backtrace configuration option has been entirely removed.
+   The option has been a no-op since 1.0.2.
+
+   *Neil Horman*
+
+ * Removed extra leading '00:' when printing key data such as an RSA modulus
+   in hexadecimal format where the first (most significant) byte is >= 0x80.
+   This had been added artificially to resemble ASN.1 DER encoding internals.
+   Fixing this also makes sure that key output always has the expected length.
+
+   *David von Oheimb*
+
+ * Standardized the width of hexadecimal dumps to 24 bytes for signatures (to
+   stay within the 80 characters limit) and 16 bytes for everything else.
+
+   *Beat Bolli*
+
+ * The deprecated function ASN1_STRING_data has been removed.
+
+   *Bob Beck*
+
+* The ASN1_STRING_FLAG_X509_TIME define has been removed.
+
+   *Bob Beck*
+
  * various function parameters have been constified,
    in particular for X509-related functions.
 
    *David von Oheimb*
 
+ * Drop darwin-i386{,-cc} and darwin-ppc{,64}{,-cc} targets from Configurations.
+
+   *Daniel Kubec and Eugene Syromiatnikov*
+
  * Added `-hmac-env` and `-hmac-stdin` options to openssl-dgst.
 
    *Igor Ustinov*
+
+ * Added SSL_CTX_get0_alpn_protos() and SSL_get0_alpn_protos().
+
+   *Daniel Kubec*
 
  * Enabled Server verification by default in `s_server` when option
    verify_return_error is enabled.
 
    *Ryan Hooper*
 
- * Added `OSSL_[EN|DE]CODER_CTX_[set|get]_finalized()` functions.
-   `OSSL_[EN|DE]CODER_CTX_set_*()` and `OSSL_[EN|DE]CODER_CTX_add_*()`
-   functions return 0 if the context is already finalised.
+ * Fixed CRLs with invalid ASN1_TIME in invalidityDate extensions,
+   where verification incorrectly succeeded. Enforced proper
+   handling of ASN1_TIME validation results so that any CRL
+   containing invalid time fields is rejected immediately,
+   preventing the error from propagating to verification.
 
-   *Igor Ustinov*
+   *Daniel Kubec*
+
+ * Reject CRLs with a Certificate Issuer extension in a certificate revocation
+   entry unless the Indirect flag is set to TRUE in the IDP extension of the CRL.
+
+   *Daniel Kubec*
+
+ * ENGINE support was removed. The `no-engine` build option and the
+   `OPENSSL_NO_ENGINE` macro is always present.
+   Applications using `ENGINE_` functions unguarded with `OPENSSL_NO_ENGINE`
+   can be built by defining a macro `OPENSSL_ENGINE_STUBS`, however all these
+   functions will return error when called. Provider API should be used to
+   replace ENGINEs functionality.
+
+   *Milan Broz*, *Neil Horman*, *Norbert Pocs*
+
+ * BIO_f_reliable() implementation was removed without replacement.
+   It was broken since 3.0 release without any complaints.
+
+   *Tomáš Mráz*
+
+ * Added SNMP KDF (EVP_KDF_SNMPKDF) to EVP_KDF
+
+   *Barry Fussell and Helen Zhang*
+
+ * Added `EVP_MD_CTX_serialize()`/`EVP_MD_CTX_deserialize()` functions. These
+   functions allow to export the internal state of a Digest and re-import it
+   later to continue a computation from a specific checkpoint.  Only SHA-2 and
+   the SHA-3 family (Keccak, SHAKE, SHA-3) of functions currently support this
+   functionality
+
+   *Simo Sorce*
+
+ * Added SRTP KDF (EVP_KDF_SRTPKDF) to EVP_KDF
+
+   *Barry Fussell and Helen Zhang*
 
 OpenSSL 3.6
 -----------
@@ -266,6 +393,10 @@ OpenSSL 3.6
    generation to the FIPS provider.
 
    *Dimitri John Ledkov*
+
+ * SSL_CTX_is_server() was added.
+
+   *Igor Ustinov*
 
 OpenSSL 3.5
 -----------
@@ -2581,6 +2712,24 @@ breaking changes, and mappings for the large list of deprecated functions.
    *Tomáš Mráz*
 
 ### Changes between 3.0.0 and 3.0.1 [14 Dec 2021]
+
+ * Fixed carry bug in BN_mod_exp which may produce incorrect results on MIPS
+   squaring procedure. Many EC algorithms are affected, including some of the
+   TLS 1.3 default curves. Impact was not analyzed in detail, because the
+   pre-requisites for attack are considered unlikely and include reusing
+   private keys. Analysis suggests that attacks against RSA and DSA as a result
+   of this defect would be very difficult to perform and are not believed
+   likely. Attacks against DH are considered just feasible (although very
+   difficult) because most of the work necessary to deduce information about
+   a private key may be performed offline.
+   The amount of resources required for such an attack would be significant.
+   However, for an attack on TLS to be meaningful, the server would have
+   to share the DH private key among multiple clients, which is no longer
+   an option since CVE-2016-0701.
+   The issue only affects OpenSSL on MIPS platforms.
+   ([CVE-2021-4160])
+
+   *Bernd Edlinger*
 
  * Fixed invalid handling of X509_verify_cert() internal errors in libssl
    Internally libssl in OpenSSL calls X509_verify_cert() on the client side to
@@ -21795,3 +21944,4 @@ ndif
 [ESV]: https://csrc.nist.gov/Projects/cryptographic-module-validation-program/entropy-validations
 [SP 800-132]: https://csrc.nist.gov/pubs/sp/800/132/final
 [SP 800-208]: https://csrc.nist.gov/pubs/sp/800/208/final
+[SP 800-185]: https://csrc.nist.gov/pubs/sp/800/185/final

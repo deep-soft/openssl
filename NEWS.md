@@ -27,7 +27,16 @@ OpenSSL 4.0
 
 ### Major changes between OpenSSL 3.6 and OpenSSL 4.0 [under development]
 
-  * none
+  * The script tool `c_rehash` was removed. Use `openssl rehash` instead.
+
+  * libcrypto no longer cleans up globally allocated data via atexit()
+
+  * ENGINE support was removed. The `no-engine` build option and the
+   `OPENSSL_NO_ENGINE` macro is always present.
+
+  * The crypto-mdebug-backtrace configuration option has been entirely removed.
+
+  * Support for the SSLv2 Client Hello was removed
 
 OpenSSL 3.6
 -----------
@@ -622,6 +631,8 @@ OpenSSL 3.0
 
 ### Major changes between OpenSSL 3.0.0 and OpenSSL 3.0.1 [14 Dec 2021]
 
+  * Fixed carry bug in BN_mod_exp which may produce incorrect results on MIPS
+    ([CVE-2021-4160])
   * Fixed invalid handling of X509_verify_cert() internal errors in libssl
     ([CVE-2021-4044])
   * Allow fetching an operation from the provider that owns an unexportable key

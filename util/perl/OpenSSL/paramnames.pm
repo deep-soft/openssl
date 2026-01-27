@@ -84,14 +84,13 @@ my %params = (
     'OSSL_OBJECT_PARAM_INPUT_TYPE' =>        "input-type", # UTF8_STRING
 
 # Algorithm parameters
-# If "engine",or "properties",are specified, they should always be paired
+# If "properties" is specified, they should always be paired
 # with the algorithm type.
 # Note these are common names that are shared by many types (such as kdf, mac,
 # and pkey) e.g: see MAC_PARAM_DIGEST below.
 
     'OSSL_ALG_PARAM_DIGEST' =>       "digest",       # utf8_string
     'OSSL_ALG_PARAM_CIPHER' =>       "cipher",       # utf8_string
-    'OSSL_ALG_PARAM_ENGINE' =>       "engine",       # utf8_string
     'OSSL_ALG_PARAM_MAC' =>          "mac",          # utf8_string
     'OSSL_ALG_PARAM_PROPERTIES' =>   "properties",   # utf8_string
     'OSSL_ALG_PARAM_FIPS_APPROVED_INDICATOR' => 'fips-indicator',   # int, -1, 0 or 1
@@ -173,6 +172,15 @@ my %params = (
     'OSSL_DIGEST_PARAM_SIZE' =>         "size",         # size_t
     'OSSL_DIGEST_PARAM_XOF' =>          "xof",          # int, 0 or 1
     'OSSL_DIGEST_PARAM_ALGID_ABSENT' => "algid-absent", # int, 0 or 1
+    'OSSL_DIGEST_PARAM_FUNCTION_NAME' =>    "function-name", # utf8 string
+    'OSSL_DIGEST_PARAM_CUSTOMIZATION' =>    "customization", # utf8 string
+    'OSSL_DIGEST_PARAM_PROPERTIES' => '*OSSL_ALG_PARAM_PROPERTIES',# utf8 string
+
+# external mu digest parameters
+    'OSSL_DIGEST_PARAM_MU_PUB_KEY' =>        "pub",                        # octet string
+    'OSSL_DIGEST_PARAM_MU_CONTEXT_STRING' => "context-string",             # octet string
+    'OSSL_DIGEST_PARAM_MU_DIGEST' =>         '*OSSL_ALG_PARAM_DIGEST',     # utf8 string
+    'OSSL_DIGEST_PARAM_MU_PROPERTIES' =>     '*OSSL_ALG_PARAM_PROPERTIES', # utf8 string
 
 # MAC parameters
     'OSSL_MAC_PARAM_KEY' =>            "key",           # octet string
@@ -185,7 +193,7 @@ my %params = (
     'OSSL_MAC_PARAM_C_ROUNDS' =>       "c-rounds",      # unsigned int
     'OSSL_MAC_PARAM_D_ROUNDS' =>       "d-rounds",      # unsigned int
 
-# If "engine",or "properties",are specified, they should always be paired
+# If "properties" is specified, they should always be paired
 # with "cipher",or "digest".
 
     'OSSL_MAC_PARAM_CIPHER' =>           '*OSSL_ALG_PARAM_CIPHER',        # utf8 string
@@ -223,6 +231,10 @@ my %params = (
     'OSSL_KDF_PARAM_SCRYPT_MAXMEM' => "maxmem_bytes",            # uint64_t
     'OSSL_KDF_PARAM_INFO' =>         "info",                     # octet string
     'OSSL_KDF_PARAM_SEED' =>         "seed",                     # octet string
+    'OSSL_KDF_PARAM_SNMPKDF_EID' =>  "eid",                      # octet string
+    'OSSL_KDF_PARAM_SRTPKDF_INDEX' => "index",                   # octet string
+    'OSSL_KDF_PARAM_SRTPKDF_KDR' =>   "kdr",                     # uint32_t
+    'OSSL_KDF_PARAM_SRTPKDF_LABEL' => "label",                   # uint32_t
     'OSSL_KDF_PARAM_SSHKDF_XCGHASH' => "xcghash",                # octet string
     'OSSL_KDF_PARAM_SSHKDF_SESSION_ID' => "session_id",          # octet string
     'OSSL_KDF_PARAM_SSHKDF_TYPE' =>  "type",                     # int
@@ -295,7 +307,6 @@ my %params = (
     'OSSL_PKEY_PARAM_SECURITY_CATEGORY' =>   '*OSSL_ALG_PARAM_SECURITY_CATEGORY',
     'OSSL_PKEY_PARAM_DIGEST' =>              '*OSSL_ALG_PARAM_DIGEST',
     'OSSL_PKEY_PARAM_CIPHER' =>              '*OSSL_ALG_PARAM_CIPHER', # utf8 string
-    'OSSL_PKEY_PARAM_ENGINE' =>              '*OSSL_ALG_PARAM_ENGINE', # utf8 string
     'OSSL_PKEY_PARAM_PROPERTIES' =>          '*OSSL_ALG_PARAM_PROPERTIES',
     'OSSL_PKEY_PARAM_DEFAULT_DIGEST' =>      "default-digest",# utf8 string
     'OSSL_PKEY_PARAM_MANDATORY_DIGEST' =>    "mandatory-digest",# utf8 string
@@ -309,6 +320,7 @@ my %params = (
     'OSSL_PKEY_PARAM_DIST_ID' =>             "distid",
     'OSSL_PKEY_PARAM_PUB_KEY' =>             "pub",
     'OSSL_PKEY_PARAM_PRIV_KEY' =>            "priv",
+    'OSSL_PKEY_PARAM_OUTPUT_FORMATS' =>      "output_formats",
     # PKEY_PARAM_IMPLICIT_REJECTION isn't actually used, or meaningful.  We keep
     # it for API stability, but please use ASYM_CIPHER_PARAM_IMPLICIT_REJECTION
     # instead.
@@ -343,6 +355,7 @@ my %params = (
 
 # Elliptic Curve Explicit Domain Parameters
     'OSSL_PKEY_PARAM_EC_FIELD_TYPE' =>                   "field-type",
+    'OSSL_PKEY_PARAM_EC_FIELD_DEGREE' =>                 "field-degree",
     'OSSL_PKEY_PARAM_EC_P' =>                            "p",
     'OSSL_PKEY_PARAM_EC_A' =>                            "a",
     'OSSL_PKEY_PARAM_EC_B' =>                            "b",
@@ -503,7 +516,6 @@ my %params = (
 # Asym cipher parameters
     'OSSL_ASYM_CIPHER_PARAM_DIGEST' =>                   '*OSSL_PKEY_PARAM_DIGEST',
     'OSSL_ASYM_CIPHER_PARAM_PROPERTIES' =>               '*OSSL_PKEY_PARAM_PROPERTIES',
-    'OSSL_ASYM_CIPHER_PARAM_ENGINE' =>                   '*OSSL_PKEY_PARAM_ENGINE',
     'OSSL_ASYM_CIPHER_PARAM_PAD_MODE' =>                 '*OSSL_PKEY_PARAM_PAD_MODE',
     'OSSL_ASYM_CIPHER_PARAM_MGF1_DIGEST' =>              '*OSSL_PKEY_PARAM_MGF1_DIGEST',
     'OSSL_ASYM_CIPHER_PARAM_MGF1_DIGEST_PROPS' =>        '*OSSL_PKEY_PARAM_MGF1_PROPERTIES',

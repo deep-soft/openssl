@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2024 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1999-2026 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -11,6 +11,8 @@
 #include "internal/cryptlib.h"
 #include <openssl/pkcs12.h>
 #include <openssl/trace.h>
+
+#include <crypto/asn1.h>
 
 /*
  * Encrypt/Decrypt a buffer based on password and algor, result in a
@@ -103,7 +105,7 @@ unsigned char *PKCS12_pbe_crypt_ex(const X509_ALGOR *algor,
         if (EVP_CIPHER_CTX_is_encrypting(ctx)) {
             if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG,
                     (int)mac_len, out + outlen)
-                < 0) {
+                <= 0) {
                 OPENSSL_free(out);
                 out = NULL;
                 ERR_raise(ERR_LIB_PKCS12, ERR_R_INTERNAL_ERROR);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2014-2026 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -12,6 +12,7 @@
 
 #include <stdarg.h>
 #include "internal/common.h" /* for HAS_PREFIX */
+#include "internal/err.h" /* for ERR_NUM_ERRORS */
 
 #include <openssl/provider.h>
 #include <openssl/err.h>
@@ -56,6 +57,21 @@
  */
 #define ADD_ALL_TESTS(test_function, num) \
     add_all_tests(#test_function, test_function, num, 1)
+
+/*
+ * Memory failure exhaustive test. Runs test_fn repeatedly, each time
+ * injecting an allocation failure one step later. When a failure is
+ * injected, asserts test_fn returns 0. When no failure is injected
+ * (all allocation points exhausted), asserts test_fn returns 1 and stops.
+ *
+ * The slow variant is for marking the slow test that can be skipped using
+ * environment variable.
+ *
+ * test_fn has no parameters and returns 1 on success, 0 on failure.
+ */
+#define ADD_MFAIL_TEST(test_fn) add_mfail_test(#test_fn, test_fn, 0)
+#define ADD_MFAIL_SLOW_TEST(test_fn) add_mfail_test(#test_fn, test_fn, 1)
+
 /*
  * A variant of the same without TAP output.
  */
@@ -226,6 +242,20 @@ int test_arg_libctx(OSSL_LIB_CTX **libctx, OSSL_PROVIDER **default_null_prov,
 void add_test(const char *test_case_name, int (*test_fn)(void));
 void add_all_tests(const char *test_case_name, int (*test_fn)(int idx), int num,
     int subtest);
+void add_mfail_test(const char *test_case_name, int (*test_fn)(void), int slow);
+
+/*
+ * Start the memory allocation failure counter.
+ */
+void mfail_start(void);
+
+/*
+ * Stop the memory allocation failure counter.
+ */
+void mfail_end(void);
+
+#define MFAIL_start mfail_start
+#define MFAIL_end mfail_end
 
 /*
  * Declarations for user defined functions.
@@ -380,6 +410,23 @@ int test_true(const char *file, int line, const char *s, int b);
 int test_false(const char *file, int line, const char *s, int b);
 
 /*
+ * Checks whether a specific error reason is present in the error stack.
+ * This function iterates over the current thread's error queue extracting all
+ * pending errors. If any of them match the specified reason code (as returned
+ * by ERR_GET_REASON()), the function returns 1 to indicate that the
+ * corresponding error was found.
+ */
+int test_err_r(const char *file, int line, int lib, int reason);
+
+/*
+ * Checks whether a specific string is present in the error data stack.
+ * This function iterates over the current thread's error queue extracting all
+ * pending errors. If any of them match the specified string the function
+ * returns 1 to indicate that the corresponding error was found.
+ */
+int test_err_s(const char *file, int line, const char *data);
+
+/*
  * Comparisons between BIGNUMs.
  * BIGNUMS can be compared against other BIGNUMs or zero.
  * Some additional equality tests against 1 & specific values are provided.
@@ -519,6 +566,9 @@ void test_perror(const char *s);
 
 #define TEST_true(a) test_true(__FILE__, __LINE__, #a, (a) != 0)
 #define TEST_false(a) test_false(__FILE__, __LINE__, #a, (a) != 0)
+
+#define TEST_err_r(a, b) test_err_r(__FILE__, __LINE__, a, b)
+#define TEST_err_s(a) test_err_s(__FILE__, __LINE__, a)
 
 #define TEST_BN_eq(a, b) test_BN_eq(__FILE__, __LINE__, #a, #b, a, b)
 #define TEST_BN_ne(a, b) test_BN_ne(__FILE__, __LINE__, #a, #b, a, b)
@@ -661,13 +711,5 @@ X509_CRL *CRL_from_strings(const char **pem);
  * into |*out| so we can free it.
  */
 BIO *glue2bio(const char **pem, char **out);
-/*
- * Checks whether a specific error reason is present in the error stack.
- * This function iterates over the current thread's error queue using
- * ERR_get_error_all(), extracting all pending errors. If any of them match
- * the specified reason code (as returned by ERR_GET_REASON()), the function
- * returns 1 to indicate that the corresponding error was found.
- */
-int err_chk(int lib, int reason);
 
 #endif /* OSSL_TESTUTIL_H */

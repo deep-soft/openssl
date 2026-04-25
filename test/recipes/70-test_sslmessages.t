@@ -1,5 +1,5 @@
 #! /usr/bin/env perl
-# Copyright 2015-2024 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 2015-2026 The OpenSSL Project Authors. All Rights Reserved.
 #
 # Licensed under the Apache License 2.0 (the "License").  You may not use
 # this file except in compliance with the License.  You can obtain a copy
@@ -36,7 +36,8 @@ my $proxy = TLSProxy::Proxy->new(
     undef,
     cmdstr(app(["openssl"]), display => 1),
     srctop_file("apps", "server.pem"),
-    (!$ENV{HARNESS_ACTIVE} || $ENV{HARNESS_VERBOSE})
+    (!$ENV{HARNESS_ACTIVE} || $ENV{HARNESS_VERBOSE}),
+    have_IPv6()
 );
 
 @handmessages = (
@@ -100,7 +101,7 @@ my $proxy = TLSProxy::Proxy->new(
     [TLSProxy::Message::MT_CLIENT_HELLO, TLSProxy::Message::EXT_STATUS_REQUEST,
         TLSProxy::Message::CLIENT,
         checkhandshake::STATUS_REQUEST_CLI_EXTENSION],
-    (disabled("ec") ? () :
+    ((disabled("ec") && disabled("dh")) ? () :
                       [TLSProxy::Message::MT_CLIENT_HELLO,
                        TLSProxy::Message::EXT_SUPPORTED_GROUPS,
                        TLSProxy::Message::CLIENT,

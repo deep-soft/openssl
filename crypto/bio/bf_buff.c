@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2025 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2026 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -257,10 +257,10 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (ctx->ibuf_len > 0)
             return 0;
         /*
-         * If there is no ctx or no next BIO, BIO_read() returns 0, which means
-         * EOF, BIO_eof() should return 1 in this case.
+         * If there is no next BIO, BIO_read() returns 0, which means EOF,
+         * BIO_eof() should return 1 in this case.
          */
-        if (ctx == NULL || b->next_bio == NULL)
+        if (b->next_bio == NULL)
             return 1;
         ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
         break;

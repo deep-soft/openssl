@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2026 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -71,7 +71,7 @@ int OCSP_request_sign(OCSP_REQUEST *req,
     X509 *signer,
     EVP_PKEY *key,
     const EVP_MD *dgst,
-    STACK_OF(X509) *certs, unsigned long flags)
+    const STACK_OF(X509) *certs, unsigned long flags)
 {
     if (!OCSP_request_set1_name(req, X509_get_subject_name(signer)))
         goto err;

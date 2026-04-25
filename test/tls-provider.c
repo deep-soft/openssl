@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2019-2026 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -25,6 +25,8 @@
 #include <openssl/ssl.h>
 #include "internal/nelem.h"
 #include "internal/refcount.h"
+
+#include <crypto/asn1.h>
 
 /* error codes */
 
@@ -214,7 +216,7 @@ struct tls_group_st {
 static struct tls_group_st xor_group = {
     0, /* group_id, set by randomize_tls_alg_id() */
     128, /* secbits */
-    TLS1_3_VERSION, /* mintls */
+    TLS1_2_VERSION, /* mintls */
     0, /* maxtls */
     -1, /* mindtls */
     -1, /* maxdtls */

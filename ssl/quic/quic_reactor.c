@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2022-2026 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -76,6 +76,12 @@ void ossl_quic_reactor_cleanup(QUIC_REACTOR *rtor)
 }
 
 #if defined(OPENSSL_SYS_WINDOWS)
+
+/* Work around for MinGW builds. */
+#if defined(__MINGW32__) && !defined(SIO_UDP_NETRESET)
+#define SIO_UDP_NETRESET _WSAIOW(IOC_VENDOR, 15)
+#endif
+
 /*
  * On Windows recvfrom() may return WSAECONNRESET when destination port
  * used in preceding call to sendto() is no longer reachable. The reset

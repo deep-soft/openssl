@@ -129,7 +129,7 @@ static int asn1_get_length(const unsigned char **pp, int *inf, long *rl,
         *inf = 0;
         i = *p & 0x7f;
         if (*p++ & 0x80) {
-            if (max < i + 1)
+            if (max < i)
                 return 0;
             /* Skip leading zeroes */
             while (i > 0 && *p == 0) {
@@ -248,7 +248,7 @@ int ASN1_object_size(int constructed, int length, int tag)
     return ret + length;
 }
 
-void ossl_asn1_string_set_bits_left(ASN1_STRING *str, unsigned int num)
+void ossl_asn1_bit_string_set_unused_bits(ASN1_STRING *str, unsigned int num)
 {
     str->flags &= ~0x07;
     str->flags |= ASN1_STRING_FLAG_BITS_LEFT | (num & 0x07);
